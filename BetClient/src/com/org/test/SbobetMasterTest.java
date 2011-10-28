@@ -1,0 +1,39 @@
+package com.org.test;
+
+import org.junit.Test;
+
+import com.org.webbrowser.AccountImporter;
+import com.org.webbrowser.SbobetMemberClient;
+
+public class SbobetMasterTest {
+	@Test
+	public void unittest() {
+		AccountImporter master = new AccountImporter(
+				"E:\\Dev\\acc\\listAcc_maj3168200_267.txt");
+		int num_thread = 5;
+		try {
+			while (true) {
+				int i = 0;
+				SbobetMemberClient[] clients = new SbobetMemberClient[num_thread];
+
+				for (String acc : master.parseAccount_file()) {
+					clients[i] = new SbobetMemberClient(acc);
+					clients[i].start();
+					Thread.sleep(5000);
+					i++;
+					// get only num_thread instance
+					if (i > num_thread - 1)
+						break;
+				}
+				for (SbobetMemberClient client : clients) {
+					client.join();
+				}
+				Thread.sleep(5000);
+			}
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+}
