@@ -13,9 +13,10 @@ public class ThreeInOneMemberClientTest {
 			try {
 				client = new ThreeInOneMemberClient("lvmml7003028", "aq1111");
 
-				client.homePage();
+				client.start();
+				client.join();
 				Thread.sleep(5000);
-				// return;
+				return;
 			} catch (Exception e) {
 				client.getLogger().error(e);
 			}

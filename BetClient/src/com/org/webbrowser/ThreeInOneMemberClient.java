@@ -141,7 +141,9 @@ public class ThreeInOneMemberClient extends Thread {
 
 		URL main_url = after_login.getFullyQualifiedUrl("Main.aspx");
 		page = webClient.getPage(main_url);
-
+		
+		Thread.sleep(3000);
+		
 		FrameWindow frm_left = page.getFrameByName("fraPanel");
 		HtmlPage left_page = (HtmlPage) frm_left.getEnclosedPage();
 
@@ -180,15 +182,15 @@ public class ThreeInOneMemberClient extends Thread {
 			HtmlAnchor anchor = odd_page
 					.getAnchorByHref("javascript: RefreshRunning();");
 			anchor.click();
-			
+
 			Thread.sleep(sleep_time);
-			
+
 			long endTime = System.currentTimeMillis();
 			delay = endTime - startTime;
 			String d = "" + delay;
-			p.sendMessage(d);
+			// p.sendMessage(d);
 			// sendData(table, table_nonlive);
-			Odd.getOddsFromThreeInOne(table);
+			p.sendMapMessage(Odd.getOddsFromThreeInOne(table));
 			i++;
 			// refresh all after 30s
 			if (i % 100 == 0) {

@@ -1,5 +1,6 @@
 package com.org.odd;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import com.gargoylesoftware.htmlunit.html.HtmlTable;
@@ -7,7 +8,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlTableBody;
 import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
 import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
 
-public class Odd {
+public class Odd implements Serializable{
 	private String home;
 	private String away;
 	private String handicap;
@@ -24,6 +25,10 @@ public class Odd {
 		this.odd_home = odd_home;
 		this.odd_away = odd_away;
 		this.type = type;
+	}
+
+	public String getId() {
+		return home + " vs " + away + ":" + handicap + ":" + type;
 	}
 
 	@Override
@@ -82,7 +87,7 @@ public class Odd {
 
 			}
 
-			System.out.println(result);
+			//System.out.println(result);
 
 		}
 

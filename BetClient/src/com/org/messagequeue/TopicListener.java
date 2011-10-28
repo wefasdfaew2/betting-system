@@ -5,6 +5,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
@@ -12,6 +13,8 @@ import javax.jms.Topic;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+
+import com.org.odd.Odd;
 
 /**
  * Use in conjunction with TopicPublisher to test the performance of ActiveMQ
@@ -49,7 +52,10 @@ public class TopicListener implements MessageListener {
 	public void onMessage(Message message) {
 		try {
 			// System.out.println(((TextMessage) message).getText());
-			logger.info(((TextMessage) message).getText());
+			ObjectMessage mes = (ObjectMessage) message;
+			Odd o = (Odd)mes.getObject();
+			logger.info(o);
+			// logger.info(((ObjectMessage)message));
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
