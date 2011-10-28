@@ -1,100 +1,94 @@
 package com.org.odd;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlSpan;
+import com.gargoylesoftware.htmlunit.html.HtmlTable;
+import com.gargoylesoftware.htmlunit.html.HtmlTableBody;
+import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
+import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
+
 public class Odd {
 	private String home;
 	private String away;
-	private int handicap;
+	private String handicap;
 	private float odd_home;
 	private float odd_away;
+	private OddType type;
 
-	public String getHome() {
-		return home;
-	}
-
-	public void setHome(String home) {
-		this.home = home;
-	}
-
-	public String getAway() {
-		return away;
-	}
-
-	public void setAway(String away) {
-		this.away = away;
-	}
-
-	public int getHandicap() {
-		return handicap;
-	}
-
-	public void setHandicap(int handicap) {
-		this.handicap = handicap;
-	}
-
-	public float getOdd_home() {
-		return odd_home;
-	}
-
-	public void setOdd_home(float odd_home) {
-		this.odd_home = odd_home;
-	}
-
-	public float getOdd_away() {
-		return odd_away;
-	}
-
-	public void setOdd_away(float odd_away) {
-		this.odd_away = odd_away;
-	}
-
-	public Odd(String home, String away, int handicap, float odd_home,
-			float odd_away) {
+	public Odd(String home, String away, String handicap, float odd_home,
+			float odd_away, OddType type) {
 		super();
 		this.home = home;
 		this.away = away;
 		this.handicap = handicap;
 		this.odd_home = odd_home;
 		this.odd_away = odd_away;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((away == null) ? 0 : away.hashCode());
-		result = prime * result + handicap;
-		result = prime * result + ((home == null) ? 0 : home.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Odd other = (Odd) obj;
-		if (away == null) {
-			if (other.away != null)
-				return false;
-		} else if (!away.equals(other.away))
-			return false;
-		if (handicap != other.handicap)
-			return false;
-		if (home == null) {
-			if (other.home != null)
-				return false;
-		} else if (!home.equals(other.home))
-			return false;
-		return true;
+		this.type = type;
 	}
 
 	@Override
 	public String toString() {
-		return home + ", " + away + ":" + handicap + ", " + odd_home + ", "
-				+ odd_away;
+		return home + " vs " + away + ":" + handicap + " , " + odd_home + " , "
+				+ odd_away + ", type=" + type;
 	}
 
+	public static List<Odd> getOddsFromThreeInOne(HtmlTable odd_table) {
+		List<Odd> result = new ArrayList<Odd>();
+		HtmlTableBody body = odd_table.getBodies().get(0);
+		for (HtmlTableRow row : body.getRows()) {
+			// only process row with first cell contain two span (contain odd)
+
+			HtmlTableCell cell = row.getCell(0);
+
+			if (cell.getClass()
+					.getName()
+					.equals("com.gargoylesoftware.htmlunit.html.HtmlTableDataCell")
+					&& cell.getColumnSpan() == 1 && cell.getRowSpan() == 1) {
+				String team = row.getCell(1).asText();
+				String team1 = team.split("\n")[0].trim();
+				String team2 = team.split("\n")[1].trim();
+				String handicap = row.getCell(2).asText();
+				if (!handicap.equals("")) {
+					float odd1 = Float.parseFloat(row.getCell(3).asText());
+					float odd2 = Float.parseFloat(row.getCell(4).asText());
+					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+							OddType.HDP_FULLTIME);
+					result.add(odd);
+				}
+				handicap = row.getCell(5).asText();
+				if (!handicap.equals("")) {
+					float odd1 = Float.parseFloat(row.getCell(6).asText());
+					float odd2 = Float.parseFloat(row.getCell(7).asText());
+					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+							OddType.OU_FULLTIME);
+					result.add(odd);
+				}
+				handicap = row.getCell(8).asText();
+				if (!handicap.equals("")) {
+					float odd1 = Float.parseFloat(row.getCell(9).asText());
+					float odd2 = Float.parseFloat(row.getCell(10).asText());
+					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+							OddType.HDP_HALFTIME);
+					result.add(odd);
+				}
+				handicap = row.getCell(11).asText();
+				if (!handicap.equals("")) {
+					float odd1 = Float.parseFloat(row.getCell(12).asText());
+					float odd2 = Float.parseFloat(row.getCell(13).asText());
+					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+							OddType.OU_HALFTIME);
+					result.add(odd);
+				}
+
+			}
+
+			System.out.println(result);
+
+		}
+
+		return result;
+	}
 }

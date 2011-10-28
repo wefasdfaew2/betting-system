@@ -29,6 +29,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlTable;
 import com.org.captcha.CaptchaUtilities;
 import com.org.captcha.Site;
 import com.org.messagequeue.TopicPublisher;
+import com.org.odd.Odd;
 
 public class ThreeInOneMemberClient extends Thread {
 	private final Logger logger;
@@ -187,7 +188,7 @@ public class ThreeInOneMemberClient extends Thread {
 			String d = "" + delay;
 			p.sendMessage(d);
 			// sendData(table, table_nonlive);
-
+			Odd.getOddsFromThreeInOne(table);
 			i++;
 			// refresh all after 30s
 			if (i % 100 == 0) {
