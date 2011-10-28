@@ -8,7 +8,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlTableBody;
 import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
 import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
 
-public class Odd implements Serializable{
+public class Odd implements Serializable {
 	private String home;
 	private String away;
 	private String handicap;
@@ -35,6 +35,56 @@ public class Odd implements Serializable{
 	public String toString() {
 		return home + " vs " + away + ":" + handicap + " , " + odd_home + " , "
 				+ odd_away + ", type=" + type;
+	}
+
+	public static List<Odd> getOddsFromSobet(HtmlTable odd_table) {
+		List<Odd> result = new ArrayList<Odd>();
+		for (HtmlTableBody body : odd_table.getBodies()) {
+			HtmlTableRow row = body.getRows().get(0);
+			HtmlTableCell first_cell = row.getCell(0);
+			if (first_cell.getColumnSpan() > 10
+					|| first_cell.getTextContent().equals("TIME")) {
+				continue;
+			}
+			String team = row.getCell(1).asText();
+			String team1 = team.split("\n")[0].trim();
+			String team2 = team.split("\n")[1].trim();
+			String handicap = row.getCell(4).asText().trim();
+			if (!handicap.equals("")) {
+				float odd1 = Float.parseFloat(row.getCell(5).asText());
+				float odd2 = Float.parseFloat(row.getCell(6).asText());
+				Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+						OddType.HDP_FULLTIME);
+				result.add(odd);
+			}
+			handicap = row.getCell(7).asText().trim();
+			if (!handicap.equals("")) {
+				float odd1 = Float.parseFloat(row.getCell(8).asText());
+				float odd2 = Float.parseFloat(row.getCell(9).asText());
+				Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+						OddType.OU_FULLTIME);
+				result.add(odd);
+			}
+			handicap = row.getCell(10).asText().trim();
+			if (!handicap.equals("")) {
+				float odd1 = Float.parseFloat(row.getCell(11).asText());
+				float odd2 = Float.parseFloat(row.getCell(12).asText());
+				Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+						OddType.HDP_HALFTIME);
+				result.add(odd);
+			}
+			handicap = row.getCell(13).asText().trim();
+			if (!handicap.equals("")) {
+				float odd1 = Float.parseFloat(row.getCell(14).asText());
+				float odd2 = Float.parseFloat(row.getCell(15).asText());
+				Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+						OddType.OU_HALFTIME);
+				result.add(odd);
+			}
+			
+		}
+
+		return result;
 	}
 
 	public static List<Odd> getOddsFromThreeInOne(HtmlTable odd_table) {
@@ -87,7 +137,7 @@ public class Odd implements Serializable{
 
 			}
 
-			//System.out.println(result);
+			// System.out.println(result);
 
 		}
 

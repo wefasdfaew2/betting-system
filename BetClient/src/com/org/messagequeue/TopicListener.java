@@ -52,9 +52,14 @@ public class TopicListener implements MessageListener {
 	public void onMessage(Message message) {
 		try {
 			// System.out.println(((TextMessage) message).getText());
+			try{
 			ObjectMessage mes = (ObjectMessage) message;
 			Odd o = (Odd)mes.getObject();
 			logger.info(o);
+			}catch(Exception e){
+				TextMessage mes = (TextMessage)message;
+				logger.info(mes.getText());
+			}
 			// logger.info(((ObjectMessage)message));
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block

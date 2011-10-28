@@ -24,6 +24,7 @@ import com.org.captcha.CaptchaUtilities;
 import com.org.captcha.Site;
 import com.org.messagequeue.TopicListener;
 import com.org.messagequeue.TopicPublisher;
+import com.org.odd.Odd;
 
 public class SbobetMemberClient extends Thread {
 	private TopicPublisher p;
@@ -186,20 +187,25 @@ public class SbobetMemberClient extends Thread {
 						.equals("")) {
 					table = (HtmlTable) odd_page.getElementById("levents")
 							.getFirstChild();
+					table = (HtmlTable) table.getBodies().get(0).getRows()
+							.get(0).getCell(0).getFirstChild();
 					// logger.info("live");
 					// when table is malform just continue not throw exception
-					try {
-						String data = table.asText();
-						long endTime = System.currentTimeMillis();
-						long delay = endTime - startTime;
-						String d = "" + delay;
-						p.sendMessage(d);
-//						if (table != null)
-//							p.sendMessage(data);
-					} catch (Exception e) {
-						// TODO: handle exception
-						continue;
-					}
+					if (table != null)
+						try {
+							String data = table.asText();
+							long endTime = System.currentTimeMillis();
+							long delay = endTime - startTime;
+							String d = "" + delay;
+							p.sendMapMessage(Odd.getOddsFromSobet(table));
+							// p.sendMessage(data);
+							// if (table != null)
+							// p.sendMessage(data);
+						} catch (Exception e) {
+							// TODO: handle exception
+							//logger.error(getStackTrace(e));
+							continue;
+						}
 
 				}
 				// if
