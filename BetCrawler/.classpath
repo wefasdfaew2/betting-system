@@ -2,14 +2,35 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="G:/Program Files/eclipse/other lib/commons-codec-1.4.jar"/>
-	<classpathentry kind="lib" path="G:/Program Files/eclipse/other lib/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="G:/Program Files/eclipse/other lib/httpclient-4.1.2.jar"/>
-	<classpathentry kind="lib" path="G:/Program Files/eclipse/other lib/httpclient-cache-4.1.2.jar"/>
-	<classpathentry kind="lib" path="G:/Program Files/eclipse/other lib/httpcore-4.1.2.jar"/>
-	<classpathentry kind="lib" path="G:/Program Files/eclipse/other lib/httpmime-4.1.2.jar"/>
-	<classpathentry kind="lib" path="G:/Program Files/eclipse/other lib/commons-io-2.0.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="G:/Program Files/eclipse/other lib/js.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/captcha.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/commons-io-2.0.1.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/commons-math-2.2.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/httpclient-4.1.2.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/httpclient-cache-4.1.2.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/httpcore-4.1.2.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/httpmime-4.1.2.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/js.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/json.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/commons-collections-3.2.1.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/commons-io-2.0.1.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/cssparser-0.9.5.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/htmlunit-2.9.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/htmlunit-core-js-2.9.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/httpclient-4.1.2.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/httpcore-4.1.2.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/httpmime-4.1.2.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/nekohtml-1.9.15.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/sac-1.3.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/serializer-2.7.1.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/xalan-2.7.1.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/xercesImpl-2.9.1.jar"/>
+	<classpathentry kind="lib" path="E:/Dev/eclipse/other lib/htmlunit-2.9/lib/xml-apis-1.3.04.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
