@@ -7,6 +7,7 @@ import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.Topic;
 
@@ -48,12 +49,15 @@ public class TopicPublisher {
 		publisher.send(session.createTextMessage(mess));
 	}
 
-	public void sendMapMessage(List<Odd> odds) throws JMSException {
-		
+	public void sendMapMessage(List<Odd> odds, String username)
+			throws JMSException {
+
 		for (Odd o : odds) {
-			publisher.send(session.createObjectMessage(o));
+			ObjectMessage mess = session.createObjectMessage(o);			
+			mess.setStringProperty("username", username);
+			publisher.send(mess);
 		}
-		
+
 	}
 
 	public void disconnect() throws JMSException {

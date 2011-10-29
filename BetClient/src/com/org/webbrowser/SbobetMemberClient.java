@@ -197,13 +197,14 @@ public class SbobetMemberClient extends Thread {
 							long endTime = System.currentTimeMillis();
 							long delay = endTime - startTime;
 							String d = "" + delay;
-							p.sendMapMessage(Odd.getOddsFromSobet(table));
+							p.sendMapMessage(Odd.getOddsFromSobet(table),
+									this.username);
 							// p.sendMessage(data);
 							// if (table != null)
 							// p.sendMessage(data);
 						} catch (Exception e) {
 							// TODO: handle exception
-							//logger.error(getStackTrace(e));
+							// logger.error(getStackTrace(e));
 							continue;
 						}
 

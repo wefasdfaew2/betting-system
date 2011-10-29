@@ -81,7 +81,7 @@ public class Odd implements Serializable {
 						OddType.OU_HALFTIME);
 				result.add(odd);
 			}
-			
+
 		}
 
 		return result;
@@ -104,35 +104,48 @@ public class Odd implements Serializable {
 				String team2 = team.split("\n")[1].trim();
 				String handicap = row.getCell(2).asText();
 				if (!handicap.equals("")) {
-					float odd1 = Float.parseFloat(row.getCell(3).asText());
-					float odd2 = Float.parseFloat(row.getCell(4).asText());
-					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
-							OddType.HDP_FULLTIME);
-					result.add(odd);
+					String odd_string = row.getCell(3).asText();
+					if (!odd_string.equals("")) {
+
+						float odd1 = Float.parseFloat(odd_string);
+						float odd2 = Float.parseFloat(row.getCell(4).asText());
+						Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+								OddType.HDP_FULLTIME);
+						result.add(odd);
+					}
 				}
 				handicap = row.getCell(5).asText();
 				if (!handicap.equals("")) {
-					float odd1 = Float.parseFloat(row.getCell(6).asText());
-					float odd2 = Float.parseFloat(row.getCell(7).asText());
-					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
-							OddType.OU_FULLTIME);
-					result.add(odd);
+					String odd_string = row.getCell(6).asText();
+					if (!odd_string.equals("")) {
+						float odd1 = Float.parseFloat(odd_string);
+						float odd2 = Float.parseFloat(row.getCell(7).asText());
+						Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+								OddType.OU_FULLTIME);
+						result.add(odd);
+					}
 				}
 				handicap = row.getCell(8).asText();
 				if (!handicap.equals("")) {
-					float odd1 = Float.parseFloat(row.getCell(9).asText());
-					float odd2 = Float.parseFloat(row.getCell(10).asText());
-					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
-							OddType.HDP_HALFTIME);
-					result.add(odd);
+					String odd_string = row.getCell(9).asText();
+					if (!odd_string.equals("")) {
+						float odd1 = Float.parseFloat(odd_string);
+						float odd2 = Float.parseFloat(row.getCell(10).asText());
+						Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+								OddType.HDP_HALFTIME);
+						result.add(odd);
+					}
 				}
 				handicap = row.getCell(11).asText();
 				if (!handicap.equals("")) {
-					float odd1 = Float.parseFloat(row.getCell(12).asText());
-					float odd2 = Float.parseFloat(row.getCell(13).asText());
-					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
-							OddType.OU_HALFTIME);
-					result.add(odd);
+					String odd_string = row.getCell(12).asText();
+					if (!odd_string.equals("")) {
+						float odd1 = Float.parseFloat(odd_string);
+						float odd2 = Float.parseFloat(row.getCell(13).asText());
+						Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
+								OddType.OU_HALFTIME);
+						result.add(odd);
+					}
 				}
 
 			}
