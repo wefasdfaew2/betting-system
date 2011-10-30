@@ -25,6 +25,7 @@ import com.org.captcha.Site;
 import com.org.messagequeue.TopicListener;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
+import com.org.odd.OddUtilities;
 
 public class SbobetMemberClient extends Thread {
 	private TopicPublisher p;
@@ -32,6 +33,7 @@ public class SbobetMemberClient extends Thread {
 	private String username;
 	private String pass;
 	private int sleep_time = 100;
+	private OddUtilities util;
 
 	public Logger getLogger() {
 		return logger;
@@ -44,8 +46,8 @@ public class SbobetMemberClient extends Thread {
 		this.username = a[0];
 		this.pass = a[1];
 		PropertyConfigurator.configure("log4j.properties");
-		logger = Logger.getLogger(SbobetMemberClient.class);
-
+		this.logger = Logger.getLogger(SbobetMemberClient.class);
+		this.util = new OddUtilities();
 	}
 
 	public SbobetMemberClient(String username, String pass) throws JMSException {
@@ -55,7 +57,8 @@ public class SbobetMemberClient extends Thread {
 		this.pass = pass;
 		System.setProperty("filename", username + ".log");
 		PropertyConfigurator.configure("log4j.properties");
-		logger = Logger.getLogger(SbobetMemberClient.class);
+		this.logger = Logger.getLogger(SbobetMemberClient.class);
+		this.util = new OddUtilities();
 	}
 
 	public void sbobetMemberHomepage() {
@@ -193,18 +196,20 @@ public class SbobetMemberClient extends Thread {
 					// when table is malform just continue not throw exception
 					if (table != null)
 						try {
-							String data = table.asText();
+//							String data = table.asText();
 							long endTime = System.currentTimeMillis();
 							long delay = endTime - startTime;
 							String d = "" + delay;
-							p.sendMapMessage(Odd.getOddsFromSobet(table),
-									this.username);
-							// p.sendMessage(data);
-							// if (table != null)
-							// p.sendMessage(data);
+
+							if (table != null) {
+								// p.sendMessage(data);
+								p.sendMapMessage(
+										this.util.getOddsFromSobet(table),
+										this.username);
+							}
 						} catch (Exception e) {
 							// TODO: handle exception
-							// logger.error(getStackTrace(e));
+							logger.error(getStackTrace(e));
 							continue;
 						}
 
@@ -225,7 +230,8 @@ public class SbobetMemberClient extends Thread {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			// e.printStackTrace();
+			logger.info(getStackTrace(e));
 		}
 	}
 

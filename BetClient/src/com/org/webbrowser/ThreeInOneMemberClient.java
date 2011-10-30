@@ -30,13 +30,15 @@ import com.org.captcha.CaptchaUtilities;
 import com.org.captcha.Site;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
+import com.org.odd.OddUtilities;
 
 public class ThreeInOneMemberClient extends Thread {
 	private final Logger logger;
 	private String username;
 	private String pass;
 	private int sleep_time = 100;
-	TopicPublisher p;
+	private TopicPublisher p;
+	private OddUtilities util;
 
 	public Logger getLogger() {
 		return logger;
@@ -50,6 +52,7 @@ public class ThreeInOneMemberClient extends Thread {
 		this.pass = pass;
 		PropertyConfigurator.configure("log4j.properties");
 		logger = Logger.getLogger(ThreeInOneMemberClient.class);
+		this.util = new OddUtilities();
 	}
 
 	public ThreeInOneMemberClient(String acc) throws JMSException {
@@ -60,7 +63,7 @@ public class ThreeInOneMemberClient extends Thread {
 		this.pass = a[1];
 		PropertyConfigurator.configure("log4j.properties");
 		logger = Logger.getLogger(ThreeInOneMemberClient.class);
-
+		this.util = new OddUtilities();
 	}
 
 	public void witeStringtoFile(String content, String file)
@@ -190,7 +193,8 @@ public class ThreeInOneMemberClient extends Thread {
 			String d = "" + delay;
 			// p.sendMessage(d);
 			// sendData(table, table_nonlive);
-			p.sendMapMessage(Odd.getOddsFromThreeInOne(table), this.username);
+			p.sendMapMessage(this.util.getOddsFromThreeInOne(table),
+					this.username);
 			i++;
 			// refresh all after 30s
 			if (i % 100 == 0) {

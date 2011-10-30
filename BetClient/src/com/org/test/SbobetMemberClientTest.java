@@ -10,14 +10,13 @@ public class SbobetMemberClientTest {
 		while (true) {
 			try {
 				SbobetMemberClient client = new SbobetMemberClient(
-						"maj1599999", "aaaa1111");
+						"maj3168200", "aaaa1111");
 
 				client.run();
 				client.join();
-				// return;
 			} catch (Exception e) {
 				e.printStackTrace();
-			}			
+			}
 		}
 	}
 }
