@@ -42,7 +42,7 @@ public class OddEngine {
 			logger.fatal(client1 + ":" + client2);
 		}
 		if (odd2.getOdd_home() < 0 && odd1.getOdd_away() < 0) {
-			logger.fatal("money team2 at \n");
+			logger.fatal("Stupid money team2 at \n");
 			logger.fatal(odd1 + " and \n");
 			logger.fatal(odd2);
 			logger.fatal(client1 + ":" + client2);
