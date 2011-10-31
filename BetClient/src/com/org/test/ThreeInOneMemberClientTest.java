@@ -2,6 +2,7 @@ package com.org.test;
 
 import org.junit.Test;
 
+import com.org.odd.OddSide;
 import com.org.webbrowser.ThreeInOneMemberClient;
 
 public class ThreeInOneMemberClientTest {
@@ -11,7 +12,8 @@ public class ThreeInOneMemberClientTest {
 		while (true) {
 			ThreeInOneMemberClient client = null;
 			try {
-				client = new ThreeInOneMemberClient("lvmml7003028", "aq1111");
+				client = new ThreeInOneMemberClient("lvmml7003028", "aq1111",
+						OddSide.LIVE);
 
 				client.start();
 				client.join();

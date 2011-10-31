@@ -2,6 +2,7 @@ package com.org.test;
 
 import org.junit.Test;
 
+import com.org.odd.OddSide;
 import com.org.webbrowser.AccountImporter;
 import com.org.webbrowser.SbobetMemberClient;
 
@@ -17,7 +18,7 @@ public class SbobetMasterTest {
 				SbobetMemberClient[] clients = new SbobetMemberClient[num_thread];
 
 				for (String acc : master.parseAccount_file()) {
-					clients[i] = new SbobetMemberClient(acc);
+					clients[i] = new SbobetMemberClient(acc, OddSide.NON_LIVE);
 					clients[i].start();
 					Thread.sleep(5000);
 					i++;

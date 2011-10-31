@@ -30,6 +30,7 @@ import com.org.captcha.CaptchaUtilities;
 import com.org.captcha.Site;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
+import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class ThreeInOneMemberClient extends Thread {
@@ -39,12 +40,13 @@ public class ThreeInOneMemberClient extends Thread {
 	private int sleep_time = 100;
 	private TopicPublisher p;
 	private OddUtilities util;
+	private OddSide side;
 
 	public Logger getLogger() {
 		return logger;
 	}
 
-	public ThreeInOneMemberClient(String username, String pass)
+	public ThreeInOneMemberClient(String username, String pass, OddSide side)
 			throws JMSException {
 		super();
 		this.p = new TopicPublisher();
@@ -53,9 +55,10 @@ public class ThreeInOneMemberClient extends Thread {
 		PropertyConfigurator.configure("log4j.properties");
 		logger = Logger.getLogger(ThreeInOneMemberClient.class);
 		this.util = new OddUtilities();
+		this.side = side;
 	}
 
-	public ThreeInOneMemberClient(String acc) throws JMSException {
+	public ThreeInOneMemberClient(String acc, OddSide side) throws JMSException {
 		super();
 		this.p = new TopicPublisher();
 		String[] a = acc.split(",");
@@ -64,6 +67,7 @@ public class ThreeInOneMemberClient extends Thread {
 		PropertyConfigurator.configure("log4j.properties");
 		logger = Logger.getLogger(ThreeInOneMemberClient.class);
 		this.util = new OddUtilities();
+		this.side = side;
 	}
 
 	public void witeStringtoFile(String content, String file)
@@ -174,27 +178,35 @@ public class ThreeInOneMemberClient extends Thread {
 		long delay = 0;
 
 		while (true) {
-			long startTime = System.currentTimeMillis();
 			// Click update live and non-live
-			// non -live
-			// HtmlElement refresh = odd_page.getElementById("imgbtnRefresh");
-			//
-			// refresh.click();
-			// System.out.println("non-live update");
 			// live
-			HtmlAnchor anchor = odd_page
-					.getAnchorByHref("javascript: RefreshRunning();");
-			anchor.click();
-
 			Thread.sleep(sleep_time);
+			if (this.side == OddSide.LIVE) {
+				long startTime = System.currentTimeMillis();
+				HtmlAnchor anchor = odd_page
+						.getAnchorByHref("javascript: RefreshRunning();");
+				anchor.click();
+				// p.sendMessage(d);
+				// sendData(table, table_nonlive);
+				p.sendMapMessage(this.util.getOddsFromThreeInOne(table),
+						this.username);
+				long endTime = System.currentTimeMillis();
+				delay = endTime - startTime;
+				String d = "" + delay;
 
-			long endTime = System.currentTimeMillis();
-			delay = endTime - startTime;
-			String d = "" + delay;
-			// p.sendMessage(d);
-			// sendData(table, table_nonlive);
-			p.sendMapMessage(this.util.getOddsFromThreeInOne(table),
-					this.username);
+			}
+			if (this.side == OddSide.NON_LIVE) {
+				long startTime = System.currentTimeMillis();
+				// non -live
+				HtmlElement refresh = odd_page.getElementById("imgbtnRefresh");
+				refresh.click();								
+				p.sendMapMessage(this.util.getOddsFromThreeInOne(table_nonlive),
+						this.username);
+				long endTime = System.currentTimeMillis();
+				delay = endTime - startTime;
+				String d = "" + delay;
+				// p.sendMessage(d);
+			}
 			i++;
 			// refresh all after 30s
 			if (i % 100 == 0) {

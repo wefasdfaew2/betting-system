@@ -2,6 +2,7 @@ package com.org.test;
 
 import org.junit.Test;
 
+import com.org.odd.OddSide;
 import com.org.webbrowser.SbobetMemberClient;
 
 public class SbobetMemberClientTest {
@@ -10,7 +11,7 @@ public class SbobetMemberClientTest {
 		while (true) {
 			try {
 				SbobetMemberClient client = new SbobetMemberClient(
-						"maj3168200", "aaaa1111");
+						"maj3168200", "aaaa1111", OddSide.LIVE);
 
 				client.run();
 				client.join();

@@ -25,6 +25,7 @@ import com.org.captcha.Site;
 import com.org.messagequeue.TopicListener;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
+import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class SbobetMemberClient extends Thread {
@@ -34,12 +35,13 @@ public class SbobetMemberClient extends Thread {
 	private String pass;
 	private int sleep_time = 100;
 	private OddUtilities util;
+	private OddSide side;
 
 	public Logger getLogger() {
 		return logger;
 	}
 
-	public SbobetMemberClient(String acc) throws JMSException {
+	public SbobetMemberClient(String acc, OddSide side) throws JMSException {
 		super();
 		this.p = new TopicPublisher();
 		String[] a = acc.split(",");
@@ -48,9 +50,11 @@ public class SbobetMemberClient extends Thread {
 		PropertyConfigurator.configure("log4j.properties");
 		this.logger = Logger.getLogger(SbobetMemberClient.class);
 		this.util = new OddUtilities();
+		this.side = side;
 	}
 
-	public SbobetMemberClient(String username, String pass) throws JMSException {
+	public SbobetMemberClient(String username, String pass, OddSide side)
+			throws JMSException {
 		super();
 		this.p = new TopicPublisher();
 		this.username = username;
@@ -59,6 +63,7 @@ public class SbobetMemberClient extends Thread {
 		PropertyConfigurator.configure("log4j.properties");
 		this.logger = Logger.getLogger(SbobetMemberClient.class);
 		this.util = new OddUtilities();
+		this.side = side;
 	}
 
 	public void sbobetMemberHomepage() {
@@ -177,52 +182,73 @@ public class SbobetMemberClient extends Thread {
 			i = 1;
 			HtmlElement refresh_live = odd_page
 					.getFirstByXPath("/html/body/div/table/tbody/tr/td/table/thead/tr/th/table/tbody/tr/td[2]");
+			HtmlElement refresh_nonlive = odd_page
+					.getFirstByXPath("/html/body/div[3]/table/tbody/tr/td/table/thead/tr/th/table/tbody/tr/td[2]");
 			while (true) {
 				long startTime = System.currentTimeMillis();
 				Thread.sleep(sleep_time);
+				if (this.side == OddSide.LIVE) {
+					refresh_live.click();
+					if (!odd_page.getElementById("levents").getFirstChild()
+							.asXml().equals("")) {
+						table = (HtmlTable) odd_page.getElementById("levents")
+								.getFirstChild();
+						table = (HtmlTable) table.getBodies().get(0).getRows()
+								.get(0).getCell(0).getFirstChild();
+						// when table is malform just continue not throw
+						// exception
+						if (table != null)
+							try {
+								// String data = table.asText();
+								long endTime = System.currentTimeMillis();
+								long delay = endTime - startTime;
+								String d = "" + delay;
 
-				// HtmlElement refresh_full = odd_page
-				// .getElementById("RefreshImg");
-				// refresh_full.click();
-
-				refresh_live.click();
-				if (!odd_page.getElementById("levents").getFirstChild().asXml()
-						.equals("")) {
-					table = (HtmlTable) odd_page.getElementById("levents")
-							.getFirstChild();
-					table = (HtmlTable) table.getBodies().get(0).getRows()
-							.get(0).getCell(0).getFirstChild();
-					// logger.info("live");
-					// when table is malform just continue not throw exception
-					if (table != null)
-						try {
-//							String data = table.asText();
-							long endTime = System.currentTimeMillis();
-							long delay = endTime - startTime;
-							String d = "" + delay;
-
-							if (table != null) {
-								// p.sendMessage(data);
-								p.sendMapMessage(
-										this.util.getOddsFromSobet(table),
-										this.username);
+								if (table != null) {
+									// p.sendMessage(data);
+									p.sendMapMessage(
+											this.util.getOddsFromSobet(table),
+											this.username);
+								}
+							} catch (Exception e) {
+								// TODO: handle exception
+								logger.error(getStackTrace(e));
+								continue;
 							}
-						} catch (Exception e) {
-							// TODO: handle exception
-							logger.error(getStackTrace(e));
-							continue;
-						}
 
+					}
 				}
-				// if
-				// (!odd_page.getElementById("events").getFirstChild().asXml()
-				// .equals("")) {
-				// table_nonlive = (HtmlTable) odd_page.getElementById(
-				// "events").getFirstChild();
-				// logger.info("non-live");
-				// logger.info(table_nonlive.asText());
-				//
-				// }
+				startTime = System.currentTimeMillis();
+				if (this.side == OddSide.NON_LIVE) {
+					refresh_nonlive.click();
+					if (!odd_page.getElementById("events").getFirstChild()
+							.asXml().equals("")) {
+						table_nonlive = (HtmlTable) odd_page.getElementById("events")
+								.getFirstChild();
+						table_nonlive = (HtmlTable) table_nonlive.getBodies().get(0).getRows()
+								.get(0).getCell(0).getFirstChild();
+						// when table is malform just continue not throw exception
+						if (table_nonlive != null)
+							try {
+								// String data = table.asText();
+								long endTime = System.currentTimeMillis();
+								long delay = endTime - startTime;
+								String d = "" + delay;
+
+								if (table_nonlive != null) {
+									// p.sendMessage(data);
+									p.sendMapMessage(
+											this.util.getOddsFromSobet(table_nonlive),
+											this.username);
+								}
+							} catch (Exception e) {
+								// TODO: handle exception
+								logger.error(getStackTrace(e));
+								continue;
+							}
+
+					}
+				}
 				i++;
 				if (i % 3000 == 0) {
 					break;
