@@ -124,7 +124,12 @@ public class OddUtilities {
 
 	public List<Odd> getOddsFromThreeInOne(HtmlTable odd_table) {
 		List<Odd> result = new ArrayList<Odd>();
-		HtmlTableBody body = odd_table.getBodies().get(0);
+		HtmlTableBody body;
+		try {
+			body = odd_table.getBodies().get(0);
+		} catch (Exception e) {
+			return result;
+		}
 		for (HtmlTableRow row : body.getRows()) {
 			// only process row with first cell contain two span (contain odd)
 
