@@ -1,6 +1,7 @@
 package com.org.odd;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -38,8 +39,8 @@ public class OddUtilities {
 		return result;
 	}
 
-	public List<Odd> getOddsFromSobet(HtmlTable odd_table) {
-		List<Odd> result = new ArrayList<Odd>();
+	public HashMap<String, Odd> getOddsFromSobet(HtmlTable odd_table) {
+		HashMap<String, Odd> result = new HashMap<String, Odd>();
 		for (HtmlTableBody body : odd_table.getBodies()) {
 			HtmlTableRow row = null;
 			HtmlTableCell first_cell = null;
@@ -58,8 +59,8 @@ public class OddUtilities {
 			String team2 = "";
 			try {
 				team = row.getCell(1).asText();
-				team1 = team.split("\n")[0].trim();
-				team2 = team.split("\n")[1].trim();
+				team1 = team.split("\n")[0].trim().toUpperCase();
+				team2 = team.split("\n")[1].trim().toUpperCase();
 			} catch (Exception e) {
 				// TODO: handle exception
 				continue;
@@ -73,10 +74,12 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(6).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.HDP_FULLTIME);
-					result.add(odd);
+					// System.out.println(row.getCell(5).getCanonicalXPath());
+					// System.out.println(row.getCell(5).getCanonicalXPath());
+					result.put(odd.getId(), odd);
 				}
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
 			try {
 				handicap = convertHandicap(row.getCell(7).asText().trim());
@@ -86,10 +89,12 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(9).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.OU_FULLTIME);
-					result.add(odd);
+					// System.out.println(row.getCell(8).getCanonicalXPath());
+					// System.out.println(row.getCell(9).getCanonicalXPath());
+					result.put(odd.getId(), odd);
 				}
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
 			try {
 				handicap = row.getCell(10).asText().trim();
@@ -99,10 +104,12 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(12).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.HDP_HALFTIME);
-					result.add(odd);
+					// System.out.println(row.getCell(11).getCanonicalXPath());
+					// System.out.println(row.getCell(12).getCanonicalXPath());
+					result.put(odd.getId(), odd);
 				}
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
 			try {
 				handicap = row.getCell(13).asText().trim();
@@ -112,18 +119,20 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(15).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.OU_HALFTIME);
-					result.add(odd);
+					// System.out.println(row.getCell(14).getCanonicalXPath());
+					// System.out.println(row.getCell(15).getCanonicalXPath());
+					result.put(odd.getId(), odd);
 				}
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
 		}
 
 		return result;
 	}
 
-	public List<Odd> getOddsFromThreeInOne(HtmlTable odd_table) {
-		List<Odd> result = new ArrayList<Odd>();
+	public HashMap<String, Odd> getOddsFromThreeInOne(HtmlTable odd_table) {
+		HashMap<String, Odd> result = new HashMap<String, Odd>();
 		HtmlTableBody body;
 		try {
 			body = odd_table.getBodies().get(0);
@@ -140,8 +149,8 @@ public class OddUtilities {
 					.equals("com.gargoylesoftware.htmlunit.html.HtmlTableDataCell")
 					&& cell.getColumnSpan() == 1 && cell.getRowSpan() == 1) {
 				String team = row.getCell(1).asText();
-				String team1 = team.split("\n")[0].trim();
-				String team2 = team.split("\n")[1].trim();
+				String team1 = team.split("\n")[0].trim().toUpperCase();
+				String team2 = team.split("\n")[1].trim().toUpperCase();
 				String handicap = convertHandicap(row.getCell(2).asText());
 				if (!handicap.equals("")) {
 					String odd_string = row.getCell(3).asText();
@@ -151,7 +160,7 @@ public class OddUtilities {
 						float odd2 = Float.parseFloat(row.getCell(4).asText());
 						Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 								OddType.HDP_FULLTIME);
-						result.add(odd);
+						result.put(odd.getId(), odd);
 					}
 				}
 				handicap = convertHandicap(row.getCell(5).asText());
@@ -162,7 +171,7 @@ public class OddUtilities {
 						float odd2 = Float.parseFloat(row.getCell(7).asText());
 						Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 								OddType.OU_FULLTIME);
-						result.add(odd);
+						result.put(odd.getId(), odd);
 					}
 				}
 				handicap = convertHandicap(row.getCell(8).asText());
@@ -173,7 +182,7 @@ public class OddUtilities {
 						float odd2 = Float.parseFloat(row.getCell(10).asText());
 						Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 								OddType.HDP_HALFTIME);
-						result.add(odd);
+						result.put(odd.getId(), odd);
 					}
 				}
 				handicap = convertHandicap(row.getCell(11).asText());
@@ -184,7 +193,7 @@ public class OddUtilities {
 						float odd2 = Float.parseFloat(row.getCell(13).asText());
 						Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 								OddType.OU_HALFTIME);
-						result.add(odd);
+						result.put(odd.getId(), odd);
 					}
 				}
 

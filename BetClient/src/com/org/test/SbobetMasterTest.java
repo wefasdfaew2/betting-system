@@ -18,7 +18,7 @@ public class SbobetMasterTest {
 				SbobetMemberClient[] clients = new SbobetMemberClient[num_thread];
 
 				for (String acc : master.parseAccount_file()) {
-					clients[i] = new SbobetMemberClient(acc, OddSide.NON_LIVE);
+					clients[i] = new SbobetMemberClient(acc, OddSide.LIVE);
 					clients[i].start();
 					Thread.sleep(5000);
 					i++;

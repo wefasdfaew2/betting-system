@@ -1,5 +1,6 @@
 package com.org.messagequeue;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.jms.Connection;
@@ -49,15 +50,11 @@ public class TopicPublisher {
 		publisher.send(session.createTextMessage(mess));
 	}
 
-	public void sendMapMessage(List<Odd> odds, String username)
+	public void sendMapMessage(HashMap<String, Odd> odds, String username)
 			throws JMSException {
-
-		for (Odd o : odds) {
-			ObjectMessage mess = session.createObjectMessage(o);			
-			mess.setStringProperty("username", username);
-			publisher.send(mess);
-		}
-
+		ObjectMessage m = session.createObjectMessage(odds);
+		m.setStringProperty("username", username);		
+		publisher.send(m);
 	}
 
 	public void disconnect() throws JMSException {

@@ -37,7 +37,7 @@ public class ThreeInOneMemberClient extends Thread {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 100;
+	private int sleep_time = 1000;
 	private TopicPublisher p;
 	private OddUtilities util;
 	private OddSide side;
@@ -83,11 +83,11 @@ public class ThreeInOneMemberClient extends Thread {
 		int i = 1;
 		int j = 1;
 
-		WebClient webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
+		WebClient webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
-		webClient.setThrowExceptionOnScriptError(false);
-		webClient.setThrowExceptionOnFailingStatusCode(false);
+//		webClient.setThrowExceptionOnScriptError(false);
+//		webClient.setThrowExceptionOnFailingStatusCode(false);
 
 		HtmlPage page;
 
@@ -159,8 +159,8 @@ public class ThreeInOneMemberClient extends Thread {
 		HtmlElement refresh_full = (HtmlElement) left_page
 				.getFirstByXPath("/html/body/div/form/div[7]/ul/li[2]");
 		// System.out.println(refresh_full.asXml());
-
-		refresh_full.click();
+		if (refresh_full != null)
+			refresh_full.click();
 
 		// tblData5
 		// Process get table and display
@@ -176,18 +176,22 @@ public class ThreeInOneMemberClient extends Thread {
 		i = 1;
 		// sendData(table, table_nonlive);
 		long delay = 0;
+		HtmlElement refresh_live = odd_page.createElement("button");
+		refresh_live.setAttribute("onclick", "RefreshRunning();");
+		odd_page.appendChild(refresh_live);		
+		
+		HtmlElement refresh_nonlive = odd_page.createElement("button");
+		refresh_nonlive.setAttribute("onclick", "RefreshIncrement();");
+		odd_page.appendChild(refresh_nonlive);
 
 		while (true) {
 			// Click update live and non-live
 			// live
 			Thread.sleep(sleep_time);
 			if (this.side == OddSide.LIVE) {
-				long startTime = System.currentTimeMillis();
-				HtmlAnchor anchor = odd_page
-						.getAnchorByHref("javascript: RefreshRunning();");
-				anchor.click();
-				// p.sendMessage(d);
-				// sendData(table, table_nonlive);
+				long startTime = System.currentTimeMillis();				
+				refresh_live.click();	
+				
 				p.sendMapMessage(this.util.getOddsFromThreeInOne(table),
 						this.username);
 				long endTime = System.currentTimeMillis();
@@ -198,9 +202,9 @@ public class ThreeInOneMemberClient extends Thread {
 			if (this.side == OddSide.NON_LIVE) {
 				long startTime = System.currentTimeMillis();
 				// non -live
-				HtmlElement refresh = odd_page.getElementById("imgbtnRefresh");
-				refresh.click();								
-				p.sendMapMessage(this.util.getOddsFromThreeInOne(table_nonlive),
+				refresh_nonlive.click();
+				p.sendMapMessage(
+						this.util.getOddsFromThreeInOne(table_nonlive),
 						this.username);
 				long endTime = System.currentTimeMillis();
 				delay = endTime - startTime;
@@ -213,7 +217,7 @@ public class ThreeInOneMemberClient extends Thread {
 				// Click to update all
 				// System.out.println(refresh_full.asXml());
 
-				// refresh_full.click();
+				refresh_nonlive.click();
 				// sendData(table, table_nonlive);
 				i = 1;
 				j++;

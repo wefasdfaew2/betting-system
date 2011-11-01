@@ -1,6 +1,7 @@
 package com.org.odd;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -10,6 +11,7 @@ public class OddEngine {
 	private HashMap<String, String> best_client_team1;
 	private HashMap<String, String> best_client_team2;
 	private Logger logger;
+	private HashMap<String, HashMap<String, Odd>> all_odd;
 
 	public OddEngine(Logger logger) {
 		this.best_odd_team1 = new HashMap<String, Odd>();
@@ -17,18 +19,32 @@ public class OddEngine {
 		this.best_client_team1 = new HashMap<String, String>();
 		this.best_client_team2 = new HashMap<String, String>();
 		this.logger = logger;
+		this.all_odd = new HashMap<String, HashMap<String, Odd>>();
+	}
+
+	public void addOdd(HashMap<String, Odd> odds, String client_name) {
+		// put new odd into
+		this.all_odd.put(client_name, odds);
+		// Start compare
+		for (Odd o : odds.values()) {
+			if ((o.getHome().equals("Bhutan U19 (N)".toUpperCase()) || o
+					.getHome().equals("Djurgardens U21".toUpperCase()))
+					&& o.getType() == OddType.HDP_FULLTIME) {
+				logger.info(o);
+			}
+		}
 	}
 
 	public void getGoodOdd(Odd odd1, Odd odd2, String client1, String client2) {
 		if (odd1.getOdd_home() * odd2.getOdd_away() < 0)
-			if (odd1.getOdd_home() + odd2.getOdd_away() > 0) {
+			if (odd1.getOdd_home() + odd2.getOdd_away() > 0.08) {
 				logger.fatal("money team1 at \n");
 				logger.fatal(odd1 + " and \n");
 				logger.fatal(odd2);
 				logger.fatal(client1 + ":" + client2);
 			}
 		if (odd2.getOdd_home() * odd1.getOdd_away() < 0)
-			if (odd2.getOdd_home() + odd1.getOdd_away() > 0) {
+			if (odd2.getOdd_home() + odd1.getOdd_away() > 0.08) {
 				logger.fatal("money team2 at \n");
 				logger.fatal(odd1 + " and \n");
 				logger.fatal(odd2);
@@ -49,7 +65,7 @@ public class OddEngine {
 		}
 	}
 
-	public void addOdd(Odd odd, String client_name) {
+	public void addOdd1(Odd odd, String client_name) {
 		// compare with current best odd
 		String odd_id = odd.getId();
 		if (best_odd_team1.containsKey(odd_id)) {

@@ -18,7 +18,7 @@ public class ThreeInOneBetMasterTest {
 				ThreeInOneMemberClient[] clients = new ThreeInOneMemberClient[num_thread];
 
 				for (String acc : master.parseAccount_file()) {
-					clients[i] = new ThreeInOneMemberClient(acc, OddSide.NON_LIVE);
+					clients[i] = new ThreeInOneMemberClient(acc, OddSide.LIVE);
 					clients[i].start();
 					Thread.sleep(5000);
 					i++;

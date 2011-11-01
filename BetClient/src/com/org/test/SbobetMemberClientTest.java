@@ -11,7 +11,7 @@ public class SbobetMemberClientTest {
 		while (true) {
 			try {
 				SbobetMemberClient client = new SbobetMemberClient(
-						"maj3168200", "aaaa1111", OddSide.LIVE);
+						"maj3168200", "aaaa1111", OddSide.NON_LIVE);
 
 				client.run();
 				client.join();

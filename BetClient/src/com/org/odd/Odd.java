@@ -19,6 +19,24 @@ public class Odd implements Serializable {
 	private float odd_home;
 	private float odd_away;
 	private OddType type;
+	private String odd_home_xpath;
+	private String odd_away_xpath;
+
+	public String getOdd_home_xpath() {
+		return odd_home_xpath;
+	}
+
+	public void setOdd_home_xpath(String odd_home_xpath) {
+		this.odd_home_xpath = odd_home_xpath;
+	}
+
+	public String getOdd_away_xpath() {
+		return odd_away_xpath;
+	}
+
+	public void setOdd_away_xpath(String odd_away_xpath) {
+		this.odd_away_xpath = odd_away_xpath;
+	}
 
 	public Odd(String home, String away, String handicap, float odd_home,
 			float odd_away, OddType type) {
@@ -51,13 +69,84 @@ public class Odd implements Serializable {
 		return home + " vs " + away + ":" + handicap + ":" + type;
 	}
 
-	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((away == null) ? 0 : away.hashCode());
+		result = prime * result
+				+ ((handicap == null) ? 0 : handicap.hashCode());
+		result = prime * result + ((home == null) ? 0 : home.hashCode());
+		result = prime * result + Float.floatToIntBits(odd_away);
+		result = prime * result + Float.floatToIntBits(odd_home);
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Odd other = (Odd) obj;
+		if (away == null) {
+			if (other.away != null)
+				return false;
+		} else if (!away.equals(other.away))
+			return false;
+		if (handicap == null) {
+			if (other.handicap != null)
+				return false;
+		} else if (!handicap.equals(other.handicap))
+			return false;
+		if (home == null) {
+			if (other.home != null)
+				return false;
+		} else if (!home.equals(other.home))
+			return false;
+		if (Float.floatToIntBits(odd_away) != Float
+				.floatToIntBits(other.odd_away))
+			return false;
+		if (Float.floatToIntBits(odd_home) != Float
+				.floatToIntBits(other.odd_home))
+			return false;
+		if (type != other.type)
+			return false;
+		return true;
+	}
 
 	@Override
 	public String toString() {
 		return home + " vs " + away + ":" + handicap + " , " + odd_home + " , "
-				+ odd_away + ", type=" + type;
+				+ odd_away + ", type=" + type + ", xpath = " + odd_home_xpath
+				+ ":" + odd_away_xpath;
 	}
 
-	
+	public String getHome() {
+		return home;
+	}
+
+	public void setHome(String home) {
+		this.home = home;
+	}
+
+	public String getHandicap() {
+		return handicap;
+	}
+
+	public void setHandicap(String handicap) {
+		this.handicap = handicap;
+	}
+
+	public OddType getType() {
+		return type;
+	}
+
+	public void setType(OddType type) {
+		this.type = type;
+	}
+
 }

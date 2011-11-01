@@ -6,8 +6,17 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
 import javax.imageio.ImageIO;
+import javax.jms.Connection;
 import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -28,17 +37,30 @@ import com.org.odd.Odd;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
-public class SbobetMemberClient extends Thread {
+public class SbobetMemberClient extends Thread implements MessageListener {
 	private TopicPublisher p;
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 100;
+	private int sleep_time = 1000;
 	private OddUtilities util;
 	private OddSide side;
 
 	public Logger getLogger() {
 		return logger;
+	}
+
+	public void startConnection() throws JMSException {
+		String url = "tcp://localhost:61616";
+		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
+		Connection connection = factory.createConnection();
+		Session session = connection.createSession(false,
+				Session.AUTO_ACKNOWLEDGE);
+		Topic topic = session.createTopic(this.username);
+		MessageConsumer consumer = session.createConsumer(topic);
+		consumer.setMessageListener(this);
+		connection.start();
+		logger.info("Waiting for bet command...");
 	}
 
 	public SbobetMemberClient(String acc, OddSide side) throws JMSException {
@@ -51,6 +73,11 @@ public class SbobetMemberClient extends Thread {
 		this.logger = Logger.getLogger(SbobetMemberClient.class);
 		this.util = new OddUtilities();
 		this.side = side;
+		try {
+			this.startConnection();
+		} catch (JMSException e) {
+			logger.info("error establish JMS connection");
+		}
 	}
 
 	public SbobetMemberClient(String username, String pass, OddSide side)
@@ -64,10 +91,15 @@ public class SbobetMemberClient extends Thread {
 		this.logger = Logger.getLogger(SbobetMemberClient.class);
 		this.util = new OddUtilities();
 		this.side = side;
+		try {
+			this.startConnection();
+		} catch (JMSException e) {
+			logger.info("error establish JMS connection");
+		}
 	}
 
 	public void sbobetMemberHomepage() {
-		final WebClient webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
+		final WebClient webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
@@ -107,7 +139,6 @@ public class SbobetMemberClient extends Thread {
 					.getByXPath(
 							"/html/body/div/div/table/tbody/tr/td[2]/table/tbody/tr/td/table/tbody/tr/td[10]/table/tbody/tr/td[2]")
 					.get(0);
-			// System.out.println(link.asXml());
 			page = link.click();
 
 			logger.info("loggin as " + this.username);
@@ -180,10 +211,17 @@ public class SbobetMemberClient extends Thread {
 			// logger.info(table.asText());
 			// }
 			i = 1;
-			HtmlElement refresh_live = odd_page
-					.getFirstByXPath("/html/body/div/table/tbody/tr/td/table/thead/tr/th/table/tbody/tr/td[2]");
-			HtmlElement refresh_nonlive = odd_page
-					.getFirstByXPath("/html/body/div[3]/table/tbody/tr/td/table/thead/tr/th/table/tbody/tr/td[2]");
+			// od_OnRefreshManually(0);
+			// HtmlElement refresh_live = odd_page
+			// .getFirstByXPath("/html/body/div/table/tbody/tr/td/table/thead/tr/th/table/tbody/tr/td[2]");
+			HtmlElement refresh_live = odd_page.createElement("button");
+			refresh_live.setAttribute("onclick", "od_OnRefreshManually(0)");
+			// HtmlElement refresh_nonlive = odd_page
+			// .getFirstByXPath("/html/body/div[3]/table/tbody/tr/td/table/thead/tr/th/table/tbody/tr/td[2]");
+			HtmlElement refresh_nonlive = odd_page.createElement("button");
+			refresh_nonlive.setAttribute("onclick", "od_OnRefreshManually(1);");
+			odd_page.appendChild(refresh_live);
+			odd_page.appendChild(refresh_nonlive);
 			while (true) {
 				long startTime = System.currentTimeMillis();
 				Thread.sleep(sleep_time);
@@ -223,11 +261,13 @@ public class SbobetMemberClient extends Thread {
 					refresh_nonlive.click();
 					if (!odd_page.getElementById("events").getFirstChild()
 							.asXml().equals("")) {
-						table_nonlive = (HtmlTable) odd_page.getElementById("events")
+						table_nonlive = (HtmlTable) odd_page.getElementById(
+								"events").getFirstChild();
+						table_nonlive = (HtmlTable) table_nonlive.getBodies()
+								.get(0).getRows().get(0).getCell(0)
 								.getFirstChild();
-						table_nonlive = (HtmlTable) table_nonlive.getBodies().get(0).getRows()
-								.get(0).getCell(0).getFirstChild();
-						// when table is malform just continue not throw exception
+						// when table is malform just continue not throw
+						// exception
 						if (table_nonlive != null)
 							try {
 								// String data = table.asText();
@@ -237,8 +277,8 @@ public class SbobetMemberClient extends Thread {
 
 								if (table_nonlive != null) {
 									// p.sendMessage(data);
-									p.sendMapMessage(
-											this.util.getOddsFromSobet(table_nonlive),
+									p.sendMapMessage(this.util
+											.getOddsFromSobet(table_nonlive),
 											this.username);
 								}
 							} catch (Exception e) {
@@ -250,7 +290,7 @@ public class SbobetMemberClient extends Thread {
 					}
 				}
 				i++;
-				if (i % 3000 == 0) {
+				if (i % 10000 == 0) {
 					break;
 				}
 			}
@@ -284,5 +324,28 @@ public class SbobetMemberClient extends Thread {
 		final PrintWriter printWriter = new PrintWriter(result);
 		aThrowable.printStackTrace(printWriter);
 		return result.toString();
+	}
+
+	@Override
+	public void onMessage(Message message) {
+		// TODO Auto-generated method stub
+		try {
+			// System.out.println(((TextMessage) message).getText());
+			if (message instanceof ObjectMessage) {
+				ObjectMessage mes = (ObjectMessage) message;
+				Odd odd = (Odd) mes.getObject();
+				// logger.info(mes.getStringProperty("username"));
+				logger.info(odd);
+				// processOdd(odd, mes.getStringProperty("username"));
+			} else if (message instanceof TextMessage) {
+				TextMessage mes = (TextMessage) message;
+				logger.info(mes.getText());
+			}
+			// logger.info(((ObjectMessage)message));
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 }
