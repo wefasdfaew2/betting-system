@@ -27,14 +27,27 @@ public class OddEngine {
 		this.all_odd.put(client_name, odds);
 		// Start compare
 		for (Odd o : odds.values()) {
-			// compare to all othe
-			if ((o.getHome().equals("FSV Frankfurt Am".toUpperCase()))
-					&& o.getType() == OddType.HDP_FULLTIME) {
-				logger.info(o + ": " + client_name);
-				return;
+			// compare to all other table
+			for (Entry<String, HashMap<String, Odd>> e : this.all_odd
+					.entrySet()) {
+				if (e.getKey().equals(client_name))
+					continue; // not compare to itself
+				else {
+					HashMap<String, Odd> table = e.getValue();
+					// compare to same odd at another table
+					if (table.containsKey(o.getId())) {
+						this.getGoodOdd(o, table.get(o.getId()), client_name,
+								e.getKey());
+					}
+				}
+
 			}
+			// this for monitor and debug only, remove if complete
+//			if ((o.getHome().equals("FSV Frankfurt Am".toUpperCase()))
+//					&& o.getType() == OddType.HDP_FULLTIME) {
+//				logger.info(o + ": " + client_name);
+//			}
 		}
-		logger.info("closed");
 	}
 
 	public void getGoodOdd(Odd odd1, Odd odd2, String client1, String client2) {
