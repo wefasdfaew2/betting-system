@@ -42,7 +42,7 @@ public class SbobetMemberClient extends Thread implements MessageListener {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 1000;
+	private int sleep_time = 500;
 	private OddUtilities util;
 	private OddSide side;
 
@@ -224,9 +224,10 @@ public class SbobetMemberClient extends Thread implements MessageListener {
 			odd_page.appendChild(refresh_nonlive);
 			while (true) {
 				long startTime = System.currentTimeMillis();
-				Thread.sleep(sleep_time);
+				
 				if (this.side == OddSide.LIVE) {
 					refresh_live.click();
+					Thread.sleep(sleep_time);
 					if (!odd_page.getElementById("levents").getFirstChild()
 							.asXml().equals("")) {
 						table = (HtmlTable) odd_page.getElementById("levents")
@@ -259,6 +260,7 @@ public class SbobetMemberClient extends Thread implements MessageListener {
 				startTime = System.currentTimeMillis();
 				if (this.side == OddSide.NON_LIVE) {
 					refresh_nonlive.click();
+					Thread.sleep(sleep_time);
 					if (!odd_page.getElementById("events").getFirstChild()
 							.asXml().equals("")) {
 						table_nonlive = (HtmlTable) odd_page.getElementById(

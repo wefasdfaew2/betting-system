@@ -37,7 +37,7 @@ public class ThreeInOneMemberClient extends Thread {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 1000;
+	private int sleep_time = 500;
 	private TopicPublisher p;
 	private OddUtilities util;
 	private OddSide side;
@@ -86,8 +86,8 @@ public class ThreeInOneMemberClient extends Thread {
 		WebClient webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
-//		webClient.setThrowExceptionOnScriptError(false);
-//		webClient.setThrowExceptionOnFailingStatusCode(false);
+		// webClient.setThrowExceptionOnScriptError(false);
+		// webClient.setThrowExceptionOnFailingStatusCode(false);
 
 		HtmlPage page;
 
@@ -178,8 +178,8 @@ public class ThreeInOneMemberClient extends Thread {
 		long delay = 0;
 		HtmlElement refresh_live = odd_page.createElement("button");
 		refresh_live.setAttribute("onclick", "RefreshRunning();");
-		odd_page.appendChild(refresh_live);		
-		
+		odd_page.appendChild(refresh_live);
+
 		HtmlElement refresh_nonlive = odd_page.createElement("button");
 		refresh_nonlive.setAttribute("onclick", "RefreshIncrement();");
 		odd_page.appendChild(refresh_nonlive);
@@ -187,11 +187,11 @@ public class ThreeInOneMemberClient extends Thread {
 		while (true) {
 			// Click update live and non-live
 			// live
-			Thread.sleep(sleep_time);
 			if (this.side == OddSide.LIVE) {
-				long startTime = System.currentTimeMillis();				
-				refresh_live.click();	
-				
+				long startTime = System.currentTimeMillis();
+				odd_page = refresh_live.click();
+				Thread.sleep(sleep_time);
+				table = (HtmlTable) odd_page.getElementById("tblData5");
 				p.sendMapMessage(this.util.getOddsFromThreeInOne(table),
 						this.username);
 				long endTime = System.currentTimeMillis();
@@ -202,7 +202,9 @@ public class ThreeInOneMemberClient extends Thread {
 			if (this.side == OddSide.NON_LIVE) {
 				long startTime = System.currentTimeMillis();
 				// non -live
-				refresh_nonlive.click();
+				odd_page = refresh_nonlive.click();
+				Thread.sleep(sleep_time);
+				table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
 				p.sendMapMessage(
 						this.util.getOddsFromThreeInOne(table_nonlive),
 						this.username);

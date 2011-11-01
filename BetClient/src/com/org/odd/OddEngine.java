@@ -27,12 +27,14 @@ public class OddEngine {
 		this.all_odd.put(client_name, odds);
 		// Start compare
 		for (Odd o : odds.values()) {
-			if ((o.getHome().equals("Bhutan U19 (N)".toUpperCase()) || o
-					.getHome().equals("Djurgardens U21".toUpperCase()))
+			// compare to all othe
+			if ((o.getHome().equals("FSV Frankfurt Am".toUpperCase()))
 					&& o.getType() == OddType.HDP_FULLTIME) {
-				logger.info(o);
+				logger.info(o + ": " + client_name);
+				return;
 			}
 		}
+		logger.info("closed");
 	}
 
 	public void getGoodOdd(Odd odd1, Odd odd2, String client1, String client2) {
