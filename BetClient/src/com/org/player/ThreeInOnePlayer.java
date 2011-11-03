@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -25,6 +26,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.UnexpectedPage;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -41,12 +43,13 @@ import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
+import com.org.webbrowser.ThreeInOneMemberClient;
 
 public class ThreeInOnePlayer extends Thread implements MessageListener {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 500;
+	private int sleep_time = 1000;
 	private TopicPublisher p;
 	private OddUtilities util;
 	private OddSide side;
@@ -123,8 +126,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				.getEnclosedPage();
 
 		// get captcha image url
-
-		Thread.sleep(3000);
+		webClient.waitForBackgroundJavaScript(3000);
 
 		HtmlElement image_element = (HtmlElement) login_page
 				.getFirstByXPath("/html/body/div/form/div[2]/ul/li[3]/img");
@@ -147,8 +149,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		List<HtmlForm> forms = login_page.getForms();
 		HtmlForm login_form = forms.get(0);
 
-		// System.out.println(login_form.asXml());
-		// System.out.println(login_form.getInputByName("UserName"));
 		login_form.getInputByName("UserName").setValueAttribute(username);
 		login_form.getInputByName("Password").setValueAttribute(pass);
 
@@ -161,24 +161,24 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 		// try to log in
 		HtmlPage after_login = null;
-
-		Thread.sleep(3000);
-
 		after_login = submitButton.click();
-		logger.info("Logged in as" + this.username);
+
+		webClient.waitForBackgroundJavaScript(3000);
+
+		logger.info("Logged in as " + this.username);
 
 		// after log in the request the main page
-		Thread.sleep(3000);
+		webClient.waitForBackgroundJavaScript(5000);
 
 		URL main_url = after_login.getFullyQualifiedUrl("Main.aspx");
 		page = webClient.getPage(main_url);
 
-		Thread.sleep(3000);
+		webClient.waitForBackgroundJavaScript(3000);
 
 		FrameWindow frm_left = page.getFrameByName("fraPanel");
 		HtmlPage left_page = (HtmlPage) frm_left.getEnclosedPage();
 
-		Thread.sleep(3000);
+		webClient.waitForBackgroundJavaScript(3000);
 
 		HtmlElement refresh_full = (HtmlElement) left_page
 				.getFirstByXPath("/html/body/div/form/div[7]/ul/li[2]");
@@ -191,7 +191,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
 
-		Thread.sleep(5000);
+		webClient.waitForBackgroundJavaScript(3000);
 
 		HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
 		HtmlTable table_nonlive = (HtmlTable) odd_page
@@ -203,7 +203,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		try {
 			this.startConnection();
 		} catch (JMSException e) {
-			logger.info("error establish JMS connection");
+			logger.info("error establish JMS connection...exiting..");
+			return;
 		}
 
 		long delay = 0;
@@ -223,6 +224,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				odd_page = refresh_live.click();
 				Thread.sleep(sleep_time);
 				table = (HtmlTable) odd_page.getElementById("tblData5");
+				p.sendMapMessage(this.util.getOddsFromThreeInOne(table), "3in");
 				long endTime = System.currentTimeMillis();
 				delay = endTime - startTime;
 				String d = "" + delay;
@@ -234,6 +236,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				odd_page = refresh_nonlive.click();
 				Thread.sleep(sleep_time);
 				table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
+				p.sendMapMessage(
+						this.util.getOddsFromThreeInOne(table_nonlive), "3in");
 				long endTime = System.currentTimeMillis();
 				delay = endTime - startTime;
 				String d = "" + delay;
@@ -292,6 +296,10 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			try {
 				homePage();
 				Thread.sleep(sleep_time);
+			} catch (SocketTimeoutException e) {
+				logger.info("Time out...exitting...");
+			} catch (ElementNotFoundException e) {
+				logger.info("Load error, not found main frame...exiting");
 			} catch (Exception e) {
 				logger.error(getStackTrace(e));
 
@@ -328,30 +336,38 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	}
 
 	public void placeBet(String xpath) {
-		HtmlElement odd_element = this.odd_page.getFirstByXPath(xpath);
-		logger.info(odd_element.asXml());
 		try {
+			HtmlElement odd_element = (HtmlElement) ((HtmlElement) this.odd_page
+					.getFirstByXPath(xpath)).getFirstChild();
+			String submit_odd = odd_element.asText();
+			logger.info(odd_element.asXml());
+
 			odd_element.click();
 			Thread.sleep(300);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		ticket_page = (HtmlPage) this.webClient.getWebWindowByName("fraPanel")
-				.getEnclosedPage();
-		logger.info(ticket_page.asText());
-		HtmlElement bet_button = ticket_page.createElement("button");
-		bet_button.setAttribute("onclick", "onBet();");
-		// click bet
-		try {
-			ticket_page = bet_button.click();
-			logger.info(ticket_page.asText());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
+			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
+					"fraPanel").getEnclosedPage();
+			String bet_odd = ticket_page.getElementById("lb_bet_odds").asText();
+			logger.info("match : "
+					+ ticket_page.getElementById("pn_title").asText());
+			logger.info("team to bet :"
+					+ ticket_page.getElementById("lb_bet_team").asText());
+			logger.info("hdp info : "
+					+ ticket_page.getElementById("td_tbg").asText());
+			logger.info("submitted to bet :" + submit_odd);
+			logger.info("real odd to bet :" + bet_odd);
+			if (submit_odd.equals(bet_odd)) {
+				logger.fatal("Ha ha we can bet now !!!");
+				HtmlElement bet_button = ticket_page.createElement("button");
+				bet_button.setAttribute("onclick", "onBet();");
+				// click bet
+
+				ticket_page = bet_button.click();
+				logger.info(ticket_page.asText());
+
+			}
+		} catch (Exception e) {
+			logger.error(ThreeInOneMemberClient.getStackTrace(e));
 		}
 	}
 }

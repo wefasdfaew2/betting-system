@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import javax.imageio.ImageIO;
 import javax.jms.Connection;
@@ -21,9 +24,12 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.UnexpectedPage;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebWindow;
+import com.gargoylesoftware.htmlunit.WebWindowNotFoundException;
 import com.gargoylesoftware.htmlunit.html.FrameWindow;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
@@ -39,13 +45,14 @@ import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
+import com.org.webbrowser.ThreeInOneMemberClient;
 
 public class SbobetPlayer extends Thread implements MessageListener {
 	private TopicPublisher p;
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 500;
+	private int sleep_time = 1000;
 	private OddUtilities util;
 	private OddSide side;
 	private HtmlPage page;
@@ -96,116 +103,114 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		this.side = side;
 	}
 
-	public void sbobetMemberHomepage() {
+	public void sbobetMemberHomepage() throws FailingHttpStatusCodeException,
+			MalformedURLException, IOException, InterruptedException {
 		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
+
+		page = webClient.getPage("http://www.sbobetasia.com/");
+
+		webClient.waitForBackgroundJavaScript(3000);
+
+		HtmlElement link = (HtmlElement) page.getByXPath(
+				"/html/body/div/div[3]/div").get(0);
+		page = link.click();
+
+		webClient.waitForBackgroundJavaScript(3000);
+
+		FrameWindow top_frame = page.getFrameByName("topFrame");
+		page = (HtmlPage) top_frame.getEnclosedPage();
+
+		// page contain no login form
+		URL image_url = page.getFullyQualifiedUrl(page.getElementById("vc")
+				.getAttribute("src"));
+		// System.out.println(image_url);
+		UnexpectedPage image_page = webClient.getPage(image_url);
+		// get captcha code
+		CaptchaUtilities captcha_util = new CaptchaUtilities();
+		BufferedImage imageBuffer = ImageIO.read(image_page.getInputStream());
+		String code = captcha_util.GetNumber(imageBuffer, Site.SBOBET);
+		// System.out.println(code);
+		//
+		HtmlInput id = (HtmlInput) page.getElementById("id");
+		id.setValueAttribute(this.username);
+		HtmlInput pass = (HtmlInput) page.getElementById("password");
+		pass.setValueAttribute(this.pass);
+		HtmlInput cd = (HtmlInput) page.getElementById("code");
+		cd.setValueAttribute(code);
+		// press redirect button to login page
+		link = (HtmlElement) page
+				.getByXPath(
+						"/html/body/div/div/table/tbody/tr/td[2]/table/tbody/tr/td/table/tbody/tr/td[10]/table/tbody/tr/td[2]")
+				.get(0);
+		page = link.click();
+
+		logger.info("loggin as " + this.username);
+		// after login find the new host
+
+		Thread.sleep(15000);
+
+		odd_page = (HtmlPage) webClient.getWebWindowByName("mainFrame")
+				.getEnclosedPage();
+
+		// get the odd table
+		// live odd
+		HtmlTable table = null;
+		HtmlTable table_nonlive = null;
+
+		webClient.waitForBackgroundJavaScript(3000);
+
+		int i = 1;
+		HtmlElement refresh_live = odd_page.createElement("button");
+		refresh_live.setAttribute("onclick", "od_OnRefreshManually(0)");
+
+		HtmlElement refresh_nonlive = odd_page.createElement("button");
+		refresh_nonlive.setAttribute("onclick", "od_OnRefreshManually(1);");
+
+		odd_page.appendChild(refresh_live);
+		odd_page.appendChild(refresh_nonlive);
+
 		try {
-			page = webClient.getPage("http://www.sbobetasia.com/");
-			HtmlElement link = (HtmlElement) page.getByXPath(
-					"/html/body/div/div[3]/div").get(0);
-			page = link.click();
-			FrameWindow top_frame = page.getFrameByName("topFrame");
-			page = (HtmlPage) top_frame.getEnclosedPage();
-
-			// page contain no login form
-			URL image_url = page.getFullyQualifiedUrl(page.getElementById("vc")
-					.getAttribute("src"));
-			// System.out.println(image_url);
-			UnexpectedPage image_page = webClient.getPage(image_url);
-			// get captcha code
-			CaptchaUtilities captcha_util = new CaptchaUtilities();
-			BufferedImage imageBuffer = ImageIO.read(image_page
-					.getInputStream());
-			// File outputfile = new File("G:\\captcha.jpg");
-			// ImageIO.write(imageBuffer, "jpg", outputfile);
-
-			// String code = captcha_util.GetNumber(imageBuffer, Site.SBOBET);
-			String code = captcha_util.GetNumber(imageBuffer, Site.SBOBET);
-			// System.out.println(code);
-			//
-			HtmlInput id = (HtmlInput) page.getElementById("id");
-			id.setValueAttribute(this.username);
-			HtmlInput pass = (HtmlInput) page.getElementById("password");
-			pass.setValueAttribute(this.pass);
-			HtmlInput cd = (HtmlInput) page.getElementById("code");
-			cd.setValueAttribute(code);
-			// press redirect button to login page
-			link = (HtmlElement) page
-					.getByXPath(
-							"/html/body/div/div/table/tbody/tr/td[2]/table/tbody/tr/td/table/tbody/tr/td[10]/table/tbody/tr/td[2]")
-					.get(0);
-			page = link.click();
-
-			logger.info("loggin as " + this.username);
-			// after login find the new host
-			page = (HtmlPage) webClient.getWebWindows().get(0)
-					.getEnclosedPage();
-
-			Thread.sleep(3000);
-
-			odd_page = (HtmlPage) webClient.getWebWindowByName("mainFrame")
-					.getEnclosedPage();
-
-			// get the odd table
-			// live odd
-			HtmlTable table = null;
-			HtmlTable table_nonlive = null;
-
-			Thread.sleep(5000);
-			int i = 1;
-			HtmlElement refresh_live = odd_page.createElement("button");
-			refresh_live.setAttribute("onclick", "od_OnRefreshManually(0)");
-
-			HtmlElement refresh_nonlive = odd_page.createElement("button");
-			refresh_nonlive.setAttribute("onclick", "od_OnRefreshManually(1);");
-
-			odd_page.appendChild(refresh_live);
-			odd_page.appendChild(refresh_nonlive);
-
-			try {
-				this.startConnection();
-			} catch (JMSException e) {
-				logger.info("error establish JMS connection");
-			}
-
-			while (true) {
-				if (this.side == OddSide.LIVE) {
-					refresh_live.click();
-					Thread.sleep(sleep_time);
-					if (odd_page.getElementById("levents").getFirstChild() != null
-							&& !odd_page.getElementById("levents")
-									.getFirstChild().asXml().equals("")) {
-						table = (HtmlTable) odd_page.getElementById("levents")
-								.getFirstChild();
-						table = (HtmlTable) table.getBodies().get(0).getRows()
-								.get(0).getCell(0).getFirstChild();
-					}
-				}
-				if (this.side == OddSide.NON_LIVE) {
-					refresh_nonlive.click();
-					Thread.sleep(sleep_time);
-					if (odd_page.getElementById("events").getFirstChild() != null
-							&& !odd_page.getElementById("events")
-									.getFirstChild().asXml().equals("")) {
-						table_nonlive = (HtmlTable) odd_page.getElementById(
-								"events").getFirstChild();
-						table_nonlive = (HtmlTable) table_nonlive.getBodies()
-								.get(0).getRows().get(0).getCell(0)
-								.getFirstChild();
-					}
-				}
-				i++;
-				if (i % 10000 == 0) {
-					break;
-				}
-			}
-
-		} catch (Exception e) {
-			// e.printStackTrace();
-			logger.info(getStackTrace(e));
+			this.startConnection();
+		} catch (JMSException e) {
+			logger.info("error establish JMS connection");
 		}
+
+		while (true) {
+			if (this.side == OddSide.LIVE) {
+				refresh_live.click();
+				Thread.sleep(sleep_time);
+				if (odd_page.getElementById("levents") != null
+						&& odd_page.getElementById("levents").getFirstChild() != null
+						&& !odd_page.getElementById("levents").getFirstChild()
+								.asXml().equals("")) {
+					table = (HtmlTable) odd_page.getElementById("levents")
+							.getFirstChild();
+					table = (HtmlTable) table.getBodies().get(0).getRows()
+							.get(0).getCell(0).getFirstChild();
+				}
+			}
+			if (this.side == OddSide.NON_LIVE) {
+				refresh_nonlive.click();
+				Thread.sleep(sleep_time);
+				if (odd_page.getElementById("events") != null
+						&& odd_page.getElementById("events").getFirstChild() != null
+						&& !odd_page.getElementById("events").getFirstChild()
+								.asXml().equals("")) {
+					table_nonlive = (HtmlTable) odd_page.getElementById(
+							"events").getFirstChild();
+					table_nonlive = (HtmlTable) table_nonlive.getBodies()
+							.get(0).getRows().get(0).getCell(0).getFirstChild();
+				}
+			}
+			i++;
+			if (i % 10000 == 0) {
+				break;
+			}
+		}
+
 	}
 
 	@Override
@@ -215,6 +220,10 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			try {
 				this.sbobetMemberHomepage();
 				Thread.sleep(sleep_time);
+			} catch (SocketTimeoutException e) {
+				logger.info("Time out...exitting...");
+			} catch (WebWindowNotFoundException e) {
+				logger.info("Load error, not found main frame...exiting...");
 			} catch (Exception e) {
 				logger.error(getStackTrace(e));
 
@@ -266,7 +275,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		try {
 			tmp_page = odd_element.click();
 			Thread.sleep(100);
-			
+
 			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
 					"ticketFrame").getEnclosedPage();
 
@@ -275,13 +284,13 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			e.setAttribute("type", "text/JavaScript");
 			String javascript = e.asXml().split("\n")[2].replaceAll(
 					"parent.leftWindow.", "");
-//			logger.info(javascript);
+			// logger.info(javascript);
 			// java script to open ticket form by add virtual a element
 			ticket_div = (HtmlPage) this.webClient.getWebWindowByName(
 					"leftFrame").getEnclosedPage();
 			e = ticket_div.createElement("a");
 			e.setAttribute("onclick", "javascript:" + javascript);
-//			logger.info(e.asXml());
+			// logger.info(e.asXml());
 			ticket_div.appendChild(e);
 			e.click();
 			// fill the stake
@@ -292,16 +301,14 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			e.setAttribute("onclick", "return placebet();");
 			ticket_div.appendChild(e);
 			e.click();
-			
+
 			logger.info(ticket_div.asText());
-		
-		} catch (IOException e) {
+
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			logger.error(ThreeInOneMemberClient.getStackTrace(e));
+			logger.error(ticket_page.asXml());
+		} 
 
 	}
 }

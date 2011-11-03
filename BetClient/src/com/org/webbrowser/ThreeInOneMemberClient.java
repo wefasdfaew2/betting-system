@@ -37,7 +37,7 @@ public class ThreeInOneMemberClient extends Thread {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 500;
+	private int sleep_time = 1000;
 	private TopicPublisher p;
 	private OddUtilities util;
 	private OddSide side;
@@ -193,7 +193,7 @@ public class ThreeInOneMemberClient extends Thread {
 				Thread.sleep(sleep_time);
 				table = (HtmlTable) odd_page.getElementById("tblData5");
 				p.sendMapMessage(this.util.getOddsFromThreeInOne(table),
-						this.username);
+						"3in");
 				long endTime = System.currentTimeMillis();
 				delay = endTime - startTime;
 				String d = "" + delay;
@@ -207,7 +207,7 @@ public class ThreeInOneMemberClient extends Thread {
 				table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
 				p.sendMapMessage(
 						this.util.getOddsFromThreeInOne(table_nonlive),
-						this.username);
+						"3in");
 				long endTime = System.currentTimeMillis();
 				delay = endTime - startTime;
 				String d = "" + delay;

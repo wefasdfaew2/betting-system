@@ -34,13 +34,23 @@ public class TopicPublisher {
 		TopicPublisher p = new TopicPublisher();
 		p.sendMessage("fuck you dog");
 	}
-
 	public TopicPublisher() throws JMSException {
 		super();
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		connection = factory.createConnection();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		topic = session.createTopic("topictest.messages");
+		publisher = session.createProducer(topic);
+		publisher.setDeliveryMode(DeliveryMode.PERSISTENT);
+		connection.start();
+	}
+	
+	public TopicPublisher(String topicname) throws JMSException {
+		super();
+		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
+		connection = factory.createConnection();
+		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		topic = session.createTopic(topicname);
 		publisher = session.createProducer(topic);
 		publisher.setDeliveryMode(DeliveryMode.PERSISTENT);
 		connection.start();

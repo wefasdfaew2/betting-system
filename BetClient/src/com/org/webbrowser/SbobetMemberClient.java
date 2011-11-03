@@ -42,7 +42,7 @@ public class SbobetMemberClient extends Thread {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 500;
+	private int sleep_time = 1000;
 	private OddUtilities util;
 	private OddSide side;
 
@@ -228,7 +228,7 @@ public class SbobetMemberClient extends Thread {
 										// p.sendMessage(data);
 										p.sendMapMessage(this.util
 												.getOddsFromSobet(table),
-												this.username);
+												"sbobet");
 									}
 								} catch (Exception e) {
 									// TODO: handle exception
@@ -263,7 +263,7 @@ public class SbobetMemberClient extends Thread {
 									// p.sendMessage(data);
 									p.sendMapMessage(this.util
 											.getOddsFromSobet(table_nonlive),
-											this.username);
+											"sbobet");
 								}
 							} catch (Exception e) {
 								// TODO: handle exception

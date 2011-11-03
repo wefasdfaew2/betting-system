@@ -1,6 +1,7 @@
 package com.org.messagequeue;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
@@ -20,6 +21,7 @@ import org.apache.log4j.PropertyConfigurator;
 import com.org.odd.Odd;
 import com.org.odd.OddEngine;
 import com.org.odd.OddType;
+import com.org.webbrowser.ThreeInOneMemberClient;
 
 /**
  * Use in conjunction with TopicPublisher to test the performance of ActiveMQ
@@ -55,12 +57,17 @@ public class TopicListener implements MessageListener {
 		MessageConsumer consumer = session.createConsumer(topic);
 		consumer.setMessageListener(this);
 		connection.start();
-		System.out.println("Waiting for messages...");
+		logger.info("Waiting for messages...");
 	}
 
 	private void processOdd(HashMap<String, Odd> odds, String client_name) {
 		// process new odd
-		this.engine.addOdd(odds, client_name);
+		try {
+			this.engine.addOdd(odds, client_name);
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			logger.error(ThreeInOneMemberClient.getStackTrace(e));
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -71,15 +78,27 @@ public class TopicListener implements MessageListener {
 				ObjectMessage mes = (ObjectMessage) message;
 				HashMap<String, Odd> odds = (HashMap<String, Odd>) mes
 						.getObject();
+				// logOddtable(odds);
 				this.processOdd(odds, message.getStringProperty("username"));
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
 				logger.info(mes.getText());
+				if (mes.getText().equals("1")) {
+					this.engine.setPlayed(false);
+					logger.info("play again");
+				}
 			}
 			// logger.info(((ObjectMessage)message));
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+
+	public void logOddtable(HashMap<String, Odd> odds) {
+		for (Entry<String, Odd> e : odds.entrySet()) {
+			if (e.getValue().getHome().equals("FC Copenhagen".toUpperCase()))
+				logger.info(e.getValue());
 		}
 	}
 

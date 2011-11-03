@@ -1,30 +1,84 @@
 package com.org.odd;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
+
+import javax.jms.JMSException;
 
 import org.apache.log4j.Logger;
 
+import com.org.messagequeue.TopicPublisher;
+
 public class OddEngine {
-	private HashMap<String, Odd> best_odd_team1;
-	private HashMap<String, Odd> best_odd_team2;
-	private HashMap<String, String> best_client_team1;
-	private HashMap<String, String> best_client_team2;
 	private Logger logger;
 	private HashMap<String, HashMap<String, Odd>> all_odd;
+	TopicPublisher sbo;
+	TopicPublisher three_in_one;
+	private boolean played = false;
 
-	public OddEngine(Logger logger) {
-		this.best_odd_team1 = new HashMap<String, Odd>();
-		this.best_odd_team2 = new HashMap<String, Odd>();
-		this.best_client_team1 = new HashMap<String, String>();
-		this.best_client_team2 = new HashMap<String, String>();
-		this.logger = logger;
-		this.all_odd = new HashMap<String, HashMap<String, Odd>>();
+	public boolean isPlayed() {
+		return played;
 	}
 
-	public void addOdd(HashMap<String, Odd> odds, String client_name) {
+	public void setPlayed(boolean played) {
+		this.played = played;
+	}
+
+	public OddEngine(Logger logger) {
+		this.logger = logger;
+		this.all_odd = new HashMap<String, HashMap<String, Odd>>();
+		try {
+			this.sbo = new TopicPublisher("Maj3259002");
+			this.three_in_one = new TopicPublisher("lvmml7006002");
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public float diff(float a, float b) {
+		float a1 = 0;
+		float b1 = 0;
+		if (a < 0)
+			a1 = 2 + a;
+		else
+			a1 = a;
+		if (b < 0)
+			b1 = 2 + b;
+		else
+			b1 = b;
+		return Math.abs(a1 - b1);
+	}
+
+	public void addOdd(HashMap<String, Odd> odds, String client_name)
+			throws JMSException {
 		// put new odd into
+		// remove wrong odd from 3in bet
+		List<String> wrong_odd = new ArrayList<String>();
+		if (this.all_odd.containsKey(client_name)) {
+			HashMap<String, Odd> old_odds = this.all_odd.get(client_name);
+			for (Entry<String, Odd> e : odds.entrySet()) {
+				// check if old odd are so differ
+				if (old_odds.containsKey(e.getKey())) {
+					Odd old_o = old_odds.get(e.getKey());
+					Odd new_o = e.getValue();
+					if (diff(old_o.getOdd_home(), new_o.getOdd_home())
+							+ diff(old_o.getOdd_away(), new_o.getOdd_away()) > 0.5) {
+						wrong_odd.add(e.getKey());
+						logger.error("wrong odd update at :" + client_name);
+						logger.error("old" + old_o);
+						logger.error("new" + new_o);
+					}
+				}
+			}
+			for (String key : wrong_odd) {
+				odds.remove(key);
+			}
+		}
 		this.all_odd.put(client_name, odds);
+
 		// Start compare
 		for (Odd o : odds.values()) {
 			// compare to all other table
@@ -36,34 +90,63 @@ public class OddEngine {
 					HashMap<String, Odd> table = e.getValue();
 					// compare to same odd at another table
 					if (table.containsKey(o.getId())) {
-						this.getGoodOdd(o, table.get(o.getId()), client_name,
-								e.getKey());
+						if (!played)
+							this.getGoodOdd(o, table.get(o.getId()),
+									client_name, e.getKey());
 					}
 				}
 
 			}
 			// this for monitor and debug only, remove if complete
-//			if ((o.getHome().equals("FSV Frankfurt Am".toUpperCase()))
-//					&& o.getType() == OddType.HDP_FULLTIME) {
-//				logger.info(o + ": " + client_name);
-//			}
+			// if ((o.getHome().equals("FSV Frankfurt Am".toUpperCase()))
+			// && o.getType() == OddType.HDP_FULLTIME) {
+			// logger.info(o + ": " + client_name);
+			// }
 		}
 	}
 
-	public void getGoodOdd(Odd odd1, Odd odd2, String client1, String client2) {
+	public void placeBet(Odd odd, String client, TeamType t)
+			throws JMSException {
+		if (t == TeamType.HOME) {
+			if (client.equals("3in")) {
+				this.three_in_one.sendMessage(odd.getOdd_home_xpath());
+			} else if (client.equals("sbobet")) {
+				this.sbo.sendMessage(odd.getOdd_home_xpath());
+			}
+		}
+		if (t == TeamType.AWAY) {
+			if (client.equals("3in")) {
+				this.three_in_one.sendMessage(odd.getOdd_away_xpath());
+			} else if (client.equals("sbobet")) {
+				this.sbo.sendMessage(odd.getOdd_away_xpath());
+			}
+		}
+	}
+
+	public void getGoodOdd(Odd odd1, Odd odd2, String client1, String client2)
+			throws JMSException {
 		if (odd1.getOdd_home() * odd2.getOdd_away() < 0)
-			if (odd1.getOdd_home() + odd2.getOdd_away() > 0.08) {
+			if (odd1.getOdd_home() + odd2.getOdd_away() > 0.05) {
 				logger.fatal("money team1 at \n");
 				logger.fatal(odd1 + " and \n");
 				logger.fatal(odd2);
 				logger.fatal(client1 + ":" + client2);
+
+				placeBet(odd1, client1, TeamType.HOME);
+				placeBet(odd2, client2, TeamType.AWAY);
+				played = true;
+
 			}
 		if (odd2.getOdd_home() * odd1.getOdd_away() < 0)
-			if (odd2.getOdd_home() + odd1.getOdd_away() > 0.08) {
+			if (odd2.getOdd_home() + odd1.getOdd_away() > 0.05) {
 				logger.fatal("money team2 at \n");
 				logger.fatal(odd1 + " and \n");
 				logger.fatal(odd2);
 				logger.fatal(client1 + ":" + client2);
+
+				placeBet(odd2, client2, TeamType.HOME);
+				placeBet(odd1, client1, TeamType.AWAY);
+				played = true;
 			}
 
 		if (odd1.getOdd_home() < 0 && odd2.getOdd_away() < 0) {
@@ -71,85 +154,21 @@ public class OddEngine {
 			logger.fatal(odd1 + " and \n");
 			logger.fatal(odd2);
 			logger.fatal(client1 + ":" + client2);
+
+			placeBet(odd1, client1, TeamType.HOME);
+			placeBet(odd2, client2, TeamType.AWAY);
+			played = true;
 		}
 		if (odd2.getOdd_home() < 0 && odd1.getOdd_away() < 0) {
 			logger.fatal("Stupid money team2 at \n");
 			logger.fatal(odd1 + " and \n");
 			logger.fatal(odd2);
 			logger.fatal(client1 + ":" + client2);
+
+			placeBet(odd2, client2, TeamType.HOME);
+			placeBet(odd1, client1, TeamType.AWAY);
+			played = true;
 		}
 	}
 
-	public void addOdd1(Odd odd, String client_name) {
-		// compare with current best odd
-		String odd_id = odd.getId();
-		if (best_odd_team1.containsKey(odd_id)) {
-			// compare
-			float current_best = best_odd_team1.get(odd_id).getOdd_home();
-			if ((current_best < 0 && odd.getOdd_home() < 0)
-					|| (current_best > 0 && odd.getOdd_home() > 0)) {
-				if (odd.getOdd_home() > current_best) {
-					// update
-					// logger.info("team1 update at : " + client_name + " : "
-					// + odd);
-					// logger.info("team1 old odd at : "
-					// + best_client_team1.get(odd_id) + " : "
-					// + best_odd_team1.get(odd_id));
-					best_odd_team1.put(odd_id, odd);
-					best_client_team1.put(odd_id, client_name);
-					getGoodOdd(odd, best_odd_team2.get(odd_id), client_name,
-							best_client_team2.get(odd_id));
-				}
-			} else if (current_best > 0 && odd.getOdd_home() < 0) {
-				// update
-				// logger.info("team1 update at : " + client_name + " : " +
-				// odd);
-				// logger.info("team1 old odd at : "
-				// + best_client_team1.get(odd_id) + " : "
-				// + best_odd_team1.get(odd_id));
-				best_odd_team1.put(odd_id, odd);
-				best_client_team1.put(odd_id, client_name);
-				getGoodOdd(odd, best_odd_team2.get(odd_id), client_name,
-						best_client_team2.get(odd_id));
-			}
-		} else {
-			best_odd_team1.put(odd_id, odd);
-			best_client_team1.put(odd_id, client_name);
-		}
-
-		// comapre with best odd of team 2
-		if (best_odd_team2.containsKey(odd_id)) {
-			// compare
-			float current_best = best_odd_team2.get(odd_id).getOdd_away();
-			if ((current_best < 0 && odd.getOdd_away() < 0)
-					|| (current_best > 0 && odd.getOdd_away() > 0)) {
-				if (odd.getOdd_away() > current_best) {
-					// update
-					// logger.info("team2 update at : " + client_name + " : "
-					// + odd);
-					// logger.info("team2 old odd at : "
-					// + best_client_team1.get(odd_id) + " : "
-					// + best_odd_team1.get(odd_id));
-					best_odd_team2.put(odd_id, odd);
-					best_client_team2.put(odd_id, client_name);
-					getGoodOdd(odd, best_odd_team1.get(odd_id), client_name,
-							best_client_team1.get(odd_id));
-				}
-			} else if (current_best > 0 && odd.getOdd_away() < 0) {
-				// update
-				// logger.info("team2 update at : " + client_name + " : " +
-				// odd);
-				// logger.info("team2 old odd at : "
-				// + best_client_team1.get(odd_id) + " : "
-				// + best_odd_team1.get(odd_id));
-				best_odd_team2.put(odd_id, odd);
-				best_client_team2.put(odd_id, client_name);
-				getGoodOdd(odd, best_odd_team1.get(odd_id), client_name,
-						best_client_team1.get(odd_id));
-			}
-		} else {
-			best_odd_team2.put(odd_id, odd);
-			best_client_team2.put(odd_id, client_name);
-		}
-	}
 }
