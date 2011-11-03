@@ -1,6 +1,7 @@
-package com.org.webbrowser;
+package com.org.player;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -25,7 +26,9 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebWindow;
 import com.gargoylesoftware.htmlunit.html.FrameWindow;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTable;
@@ -37,7 +40,7 @@ import com.org.odd.Odd;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
-public class SbobetMemberClient extends Thread {
+public class SbobetPlayer extends Thread implements MessageListener {
 	private TopicPublisher p;
 	private final Logger logger;
 	private String username;
@@ -45,24 +48,42 @@ public class SbobetMemberClient extends Thread {
 	private int sleep_time = 500;
 	private OddUtilities util;
 	private OddSide side;
+	private HtmlPage page;
+	private HtmlPage odd_page;
+	private HtmlPage ticket_page;
+	private HtmlPage ticket_div;
+	private WebClient webClient;
 
 	public Logger getLogger() {
 		return logger;
 	}
 
-	public SbobetMemberClient(String acc, OddSide side) throws JMSException {
+	public void startConnection() throws JMSException {
+		String url = "tcp://localhost:61616";
+		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
+		Connection connection = factory.createConnection();
+		Session session = connection.createSession(false,
+				Session.AUTO_ACKNOWLEDGE);
+		Topic topic = session.createTopic(this.username);
+		MessageConsumer consumer = session.createConsumer(topic);
+		consumer.setMessageListener(this);
+		connection.start();
+		logger.info("Waiting for bet command...");
+	}
+
+	public SbobetPlayer(String acc, OddSide side) throws JMSException {
 		super();
 		this.p = new TopicPublisher();
 		String[] a = acc.split(",");
 		this.username = a[0];
 		this.pass = a[1];
 		PropertyConfigurator.configure("log4j.properties");
-		this.logger = Logger.getLogger(SbobetMemberClient.class);
+		this.logger = Logger.getLogger(SbobetPlayer.class);
 		this.util = new OddUtilities();
 		this.side = side;
 	}
 
-	public SbobetMemberClient(String username, String pass, OddSide side)
+	public SbobetPlayer(String username, String pass, OddSide side)
 			throws JMSException {
 		super();
 		this.p = new TopicPublisher();
@@ -70,18 +91,16 @@ public class SbobetMemberClient extends Thread {
 		this.pass = pass;
 		System.setProperty("filename", username + ".log");
 		PropertyConfigurator.configure("log4j.properties");
-		this.logger = Logger.getLogger(SbobetMemberClient.class);
+		this.logger = Logger.getLogger(SbobetPlayer.class);
 		this.util = new OddUtilities();
 		this.side = side;
 	}
 
 	public void sbobetMemberHomepage() {
-		final WebClient webClient = new WebClient(
-				BrowserVersion.INTERNET_EXPLORER_8);
+		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
-		HtmlPage page;
 		try {
 			page = webClient.getPage("http://www.sbobetasia.com/");
 			HtmlElement link = (HtmlElement) page.getByXPath(
@@ -124,33 +143,11 @@ public class SbobetMemberClient extends Thread {
 			page = (HtmlPage) webClient.getWebWindows().get(0)
 					.getEnclosedPage();
 
-			// process if it is change pass page
-			// String bet_url_page = page.getFullyQualifiedUrl(
-			// "/webroot/restricted/go_product.aspx?at=true&p=hr")
-			// .toString();
-			// System.out.println(bet_url_page);
-			//
-			// page = (HtmlPage) webClient.getPage(bet_url_page);
 			Thread.sleep(3000);
 
-			// page = (HtmlPage) webClient.getWebWindowByName("frmTop")
-			// .getEnclosedPage();
-			// // if the page contain the submit button then click it
-			// HtmlElement aggree = page.getElementByName("action");
-			// page = aggree.click();
-			//
-			// // switch to the sport betting page
-			// HtmlAnchor anchor = (HtmlAnchor) page.getByXPath(
-			// "/html/body/div/div[2]/a").get(0);
-			// // System.out.println(anchor.asXml());
-			// page = anchor.click();
+			odd_page = (HtmlPage) webClient.getWebWindowByName("mainFrame")
+					.getEnclosedPage();
 
-			// get the odd page in the mainFrame frame
-			HtmlPage odd_page = (HtmlPage) webClient.getWebWindowByName(
-					"mainFrame").getEnclosedPage();
-			// logger.info(odd_page.asXml());
-			// sleep to get full table
-			// Thread.sleep(3000);
 			// get the odd table
 			// live odd
 			HtmlTable table = null;
@@ -158,119 +155,45 @@ public class SbobetMemberClient extends Thread {
 
 			Thread.sleep(5000);
 			int i = 1;
-			// while (table_nonlive == null || table == null) {
-			//
-			// Thread.sleep(10000);
-			// if (!odd_page.getElementById("levents").getFirstChild().asXml()
-			// .equals("")) {
-			// table = (HtmlTable) odd_page.getElementById("levents")
-			// .getFirstChild();
-			// }
-			// if (!odd_page.getElementById("events").getFirstChild().asXml()
-			// .equals("")) {
-			// table_nonlive = (HtmlTable) odd_page.getElementById(
-			// "events").getFirstChild();
-			// }
-			//
-			// logger.info("sleep");
-			// // logger.info(odd_page.asXml());
-			// if (i % 10 == 0) {
-			// return;
-			// }
-			// i++;
-			// }
-			//
-			// if (table_nonlive != null) {
-			// logger.info("non-live");
-			// logger.info(table_nonlive.asText());
-			// }
-			// if (table != null) {
-			// logger.info("live");
-			// logger.info(table.asText());
-			// }
-			i = 1;
-			// od_OnRefreshManually(0);
-			// HtmlElement refresh_live = odd_page
-			// .getFirstByXPath("/html/body/div/table/tbody/tr/td/table/thead/tr/th/table/tbody/tr/td[2]");
 			HtmlElement refresh_live = odd_page.createElement("button");
 			refresh_live.setAttribute("onclick", "od_OnRefreshManually(0)");
-			// HtmlElement refresh_nonlive = odd_page
-			// .getFirstByXPath("/html/body/div[3]/table/tbody/tr/td/table/thead/tr/th/table/tbody/tr/td[2]");
+
 			HtmlElement refresh_nonlive = odd_page.createElement("button");
 			refresh_nonlive.setAttribute("onclick", "od_OnRefreshManually(1);");
+
 			odd_page.appendChild(refresh_live);
 			odd_page.appendChild(refresh_nonlive);
-			while (true) {
-				long startTime = System.currentTimeMillis();
 
+			try {
+				this.startConnection();
+			} catch (JMSException e) {
+				logger.info("error establish JMS connection");
+			}
+
+			while (true) {
 				if (this.side == OddSide.LIVE) {
 					refresh_live.click();
 					Thread.sleep(sleep_time);
-					if (!odd_page.getElementById("levents").getFirstChild()
-							.asXml().equals("")) {
+					if (odd_page.getElementById("levents").getFirstChild() != null
+							&& !odd_page.getElementById("levents")
+									.getFirstChild().asXml().equals("")) {
 						table = (HtmlTable) odd_page.getElementById("levents")
 								.getFirstChild();
-						if (table.getBodies().get(0).getRows().get(0)
-								.getCells().size() > 0) {
-							table = (HtmlTable) table.getBodies().get(0)
-									.getRows().get(0).getCell(0)
-									.getFirstChild();
-							// when table is malform just continue not throw
-							// exception
-							if (table != null)
-								try {
-									// String data = table.asText();
-									long endTime = System.currentTimeMillis();
-									long delay = endTime - startTime;
-									String d = "" + delay;
-
-									if (table != null) {
-										// p.sendMessage(data);
-										p.sendMapMessage(this.util
-												.getOddsFromSobet(table),
-												this.username);
-									}
-								} catch (Exception e) {
-									// TODO: handle exception
-									logger.error(getStackTrace(e));
-									continue;
-								}
-						}
-
+						table = (HtmlTable) table.getBodies().get(0).getRows()
+								.get(0).getCell(0).getFirstChild();
 					}
 				}
-				startTime = System.currentTimeMillis();
 				if (this.side == OddSide.NON_LIVE) {
 					refresh_nonlive.click();
 					Thread.sleep(sleep_time);
-					if (!odd_page.getElementById("events").getFirstChild()
-							.asXml().equals("")) {
+					if (odd_page.getElementById("events").getFirstChild() != null
+							&& !odd_page.getElementById("events")
+									.getFirstChild().asXml().equals("")) {
 						table_nonlive = (HtmlTable) odd_page.getElementById(
 								"events").getFirstChild();
 						table_nonlive = (HtmlTable) table_nonlive.getBodies()
 								.get(0).getRows().get(0).getCell(0)
 								.getFirstChild();
-						// when table is malform just continue not throw
-						// exception
-						if (table_nonlive != null)
-							try {
-								// String data = table.asText();
-								long endTime = System.currentTimeMillis();
-								long delay = endTime - startTime;
-								String d = "" + delay;
-
-								if (table_nonlive != null) {
-									// p.sendMessage(data);
-									p.sendMapMessage(this.util
-											.getOddsFromSobet(table_nonlive),
-											this.username);
-								}
-							} catch (Exception e) {
-								// TODO: handle exception
-								logger.error(getStackTrace(e));
-								continue;
-							}
-
 					}
 				}
 				i++;
@@ -310,4 +233,75 @@ public class SbobetMemberClient extends Thread {
 		return result.toString();
 	}
 
+	@Override
+	public void onMessage(Message message) {
+		// TODO Auto-generated method stub
+		try {
+			// System.out.println(((TextMessage) message).getText());
+			if (message instanceof ObjectMessage) {
+				ObjectMessage mes = (ObjectMessage) message;
+				Odd odd = (Odd) mes.getObject();
+				// logger.info(mes.getStringProperty("username"));
+				logger.info(odd);
+				// processOdd(odd, mes.getStringProperty("username"));
+			} else if (message instanceof TextMessage) {
+				TextMessage mes = (TextMessage) message;
+				// logger.info(mes.getText());
+				this.placeBet(mes.getText());
+			}
+			// logger.info(((ObjectMessage)message));
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	public void placeBet(String xpath) {
+		HtmlElement odd_element = (HtmlElement) ((HtmlElement) this.odd_page
+				.getFirstByXPath(xpath)).getFirstChild();
+		odd_element.setAttribute("onclick", "od_OnClick(0, event)");
+		logger.info(odd_element.asXml());
+		HtmlPage tmp_page;
+		try {
+			tmp_page = odd_element.click();
+			Thread.sleep(100);
+			
+			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
+					"ticketFrame").getEnclosedPage();
+
+			HtmlElement e = (HtmlElement) ticket_page.getElementsByTagName(
+					"script").get(0);
+			e.setAttribute("type", "text/JavaScript");
+			String javascript = e.asXml().split("\n")[2].replaceAll(
+					"parent.leftWindow.", "");
+//			logger.info(javascript);
+			// java script to open ticket form by add virtual a element
+			ticket_div = (HtmlPage) this.webClient.getWebWindowByName(
+					"leftFrame").getEnclosedPage();
+			e = ticket_div.createElement("a");
+			e.setAttribute("onclick", "javascript:" + javascript);
+//			logger.info(e.asXml());
+			ticket_div.appendChild(e);
+			e.click();
+			// fill the stake
+			HtmlElement stake_input = ticket_div.getElementById("stake");
+			stake_input.setAttribute("value", "10");
+			// virtual element to place bet
+			e = ticket_div.createElement("a");
+			e.setAttribute("onclick", "return placebet();");
+			ticket_div.appendChild(e);
+			e.click();
+			
+			logger.info(ticket_div.asText());
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 }

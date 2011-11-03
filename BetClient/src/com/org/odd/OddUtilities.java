@@ -74,8 +74,8 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(6).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.HDP_FULLTIME);
-					// System.out.println(row.getCell(5).getCanonicalXPath());
-					// System.out.println(row.getCell(5).getCanonicalXPath());
+					odd.setOdd_home_xpath(row.getCell(5).getCanonicalXPath());
+					odd.setOdd_away_xpath(row.getCell(6).getCanonicalXPath());
 					result.put(odd.getId(), odd);
 				}
 			} catch (Exception e) {
@@ -89,8 +89,8 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(9).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.OU_FULLTIME);
-					// System.out.println(row.getCell(8).getCanonicalXPath());
-					// System.out.println(row.getCell(9).getCanonicalXPath());
+					odd.setOdd_home_xpath(row.getCell(8).getCanonicalXPath());
+					odd.setOdd_away_xpath(row.getCell(9).getCanonicalXPath());
 					result.put(odd.getId(), odd);
 				}
 			} catch (Exception e) {
@@ -104,8 +104,8 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(12).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.HDP_HALFTIME);
-					// System.out.println(row.getCell(11).getCanonicalXPath());
-					// System.out.println(row.getCell(12).getCanonicalXPath());
+					odd.setOdd_home_xpath(row.getCell(11).getCanonicalXPath());
+					odd.setOdd_away_xpath(row.getCell(12).getCanonicalXPath());
 					result.put(odd.getId(), odd);
 				}
 			} catch (Exception e) {
@@ -119,8 +119,8 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(15).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.OU_HALFTIME);
-					// System.out.println(row.getCell(14).getCanonicalXPath());
-					// System.out.println(row.getCell(15).getCanonicalXPath());
+					odd.setOdd_home_xpath(row.getCell(14).getCanonicalXPath());
+					odd.setOdd_away_xpath(row.getCell(15).getCanonicalXPath());
 					result.put(odd.getId(), odd);
 				}
 			} catch (Exception e) {
@@ -167,14 +167,16 @@ public class OddUtilities {
 				try {
 					handicap = convertHandicap(row.getCell(2).asText());
 					if (!handicap.equals("")) {
-						String odd_string = row.getCell(3).asText();
-						if (!odd_string.equals("")) {
+						String odd_string1 = row.getCell(3).asText();
+						String odd_string2 = row.getCell(4).asText();
+						if ((!odd_string1.equals("")) && (!odd_string2.equals(""))) {
 
-							float odd1 = Float.parseFloat(odd_string);
-							float odd2 = Float.parseFloat(row.getCell(4)
-									.asText());
+							float odd1 = Float.parseFloat(odd_string1);
+							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.HDP_FULLTIME);
+							odd.setOdd_home_xpath(row.getCell(3).getCanonicalXPath());
+							odd.setOdd_away_xpath(row.getCell(4).getCanonicalXPath());
 							result.put(odd.getId(), odd);
 						}
 					}
@@ -184,13 +186,15 @@ public class OddUtilities {
 				try {
 					handicap = convertHandicap(row.getCell(5).asText());
 					if (!handicap.equals("")) {
-						String odd_string = row.getCell(6).asText();
-						if (!odd_string.equals("")) {
-							float odd1 = Float.parseFloat(odd_string);
-							float odd2 = Float.parseFloat(row.getCell(7)
-									.asText());
+						String odd_string1 = row.getCell(6).asText();
+						String odd_string2 = row.getCell(7).asText();
+						if ((!odd_string1.equals("")) && (!odd_string2.equals(""))) {
+							float odd1 = Float.parseFloat(odd_string1);
+							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.OU_FULLTIME);
+							odd.setOdd_home_xpath(row.getCell(6).getCanonicalXPath());
+							odd.setOdd_away_xpath(row.getCell(7).getCanonicalXPath());
 							result.put(odd.getId(), odd);
 						}
 					}
@@ -200,13 +204,15 @@ public class OddUtilities {
 				try {
 					handicap = convertHandicap(row.getCell(8).asText());
 					if (!handicap.equals("")) {
-						String odd_string = row.getCell(9).asText();
-						if (!odd_string.equals("")) {
-							float odd1 = Float.parseFloat(odd_string);
-							float odd2 = Float.parseFloat(row.getCell(10)
-									.asText());
+						String odd_string1 = row.getCell(9).asText();
+						String odd_string2 = row.getCell(10).asText();
+						if ((!odd_string1.equals("")) && (!odd_string2.equals(""))) {
+							float odd1 = Float.parseFloat(odd_string1);
+							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.HDP_HALFTIME);
+							odd.setOdd_home_xpath(row.getCell(9).getCanonicalXPath());
+							odd.setOdd_away_xpath(row.getCell(10).getCanonicalXPath());
 							result.put(odd.getId(), odd);
 						}
 					}
@@ -216,13 +222,15 @@ public class OddUtilities {
 				try {
 					handicap = convertHandicap(row.getCell(11).asText());
 					if (!handicap.equals("")) {
-						String odd_string = row.getCell(12).asText();
-						if (!odd_string.equals("")) {
-							float odd1 = Float.parseFloat(odd_string);
-							float odd2 = Float.parseFloat(row.getCell(13)
-									.asText());
+						String odd_string1 = row.getCell(12).asText();
+						String odd_string2 = row.getCell(13).asText();
+						if ((!odd_string1.equals("")) && (!odd_string2.equals(""))) {
+							float odd1 = Float.parseFloat(odd_string1);
+							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.OU_HALFTIME);
+							odd.setOdd_home_xpath(row.getCell(12).getCanonicalXPath());
+							odd.setOdd_away_xpath(row.getCell(13).getCanonicalXPath());
 							result.put(odd.getId(), odd);
 						}
 					}
