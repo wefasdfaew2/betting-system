@@ -49,7 +49,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 1000;
+	private int sleep_time = 500;
 	private TopicPublisher p;
 	private OddUtilities util;
 	private OddSide side;
@@ -183,8 +183,15 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		HtmlElement refresh_full = (HtmlElement) left_page
 				.getFirstByXPath("/html/body/div/form/div[7]/ul/li[2]");
 		// System.out.println(refresh_full.asXml());
-		if (refresh_full != null)
-			refresh_full.click();
+		if (this.side == OddSide.EARLY) {
+			HtmlElement early = (HtmlElement) left_page
+					.getFirstByXPath("/html/body/div/form/div[7]/ul/li");
+			early.click();
+			webClient.waitForBackgroundJavaScript(3000);
+		} else {
+			if (refresh_full != null)
+				refresh_full.click();
+		}
 
 		// tblData5
 		// Process get table and display
@@ -208,18 +215,32 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		}
 
 		long delay = 0;
+		// virtual button to click refresh, call javascript skip check time
 		HtmlElement refresh_live = odd_page.createElement("button");
-		refresh_live.setAttribute("onclick", "RefreshRunning();");
+		refresh_live
+				.setAttribute(
+						"onclick",
+						"var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);");
 		odd_page.appendChild(refresh_live);
 
 		HtmlElement refresh_nonlive = odd_page.createElement("button");
-		refresh_nonlive.setAttribute("onclick", "RefreshIncrement();");
+		refresh_nonlive
+				.setAttribute(
+						"onclick",
+						"var data = GetOddsParams(3, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		odd_page.appendChild(refresh_nonlive);
+
+		HtmlElement refresh_early = odd_page.createElement("button");
+		refresh_early
+				.setAttribute(
+						"onclick",
+						"var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
+		odd_page.appendChild(refresh_early);
 
 		while (true) {
 			// Click update live and non-live
 			// live
-			if (this.side == OddSide.LIVE) {
+			if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 				long startTime = System.currentTimeMillis();
 				odd_page = refresh_live.click();
 				Thread.sleep(sleep_time);
@@ -230,10 +251,14 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				String d = "" + delay;
 
 			}
-			if (this.side == OddSide.NON_LIVE) {
+			if (this.side == OddSide.NON_LIVE || this.side == OddSide.EARLY
+					|| this.side == OddSide.TODAY) {
 				long startTime = System.currentTimeMillis();
 				// non -live
-				odd_page = refresh_nonlive.click();
+				if (this.side == OddSide.NON_LIVE)
+					odd_page = refresh_nonlive.click();
+				else if (this.side == OddSide.EARLY)
+					odd_page = refresh_early.click();
 				Thread.sleep(sleep_time);
 				table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
 				p.sendMapMessage(
@@ -249,7 +274,12 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				// Click to update all
 				// System.out.println(refresh_full.asXml());
 
-				refresh_nonlive.click();
+				// refresh_nonlive.click(); // interfere with early
+				if (this.side == OddSide.EARLY)
+					refresh_early.click();
+				else
+					refresh_full.click();
+				Thread.sleep(3000);
 				// sendData(table, table_nonlive);
 				i = 1;
 				j++;
@@ -356,7 +386,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 					+ ticket_page.getElementById("td_tbg").asText());
 			logger.info("submitted to bet :" + submit_odd);
 			logger.info("real odd to bet :" + bet_odd);
-			if (submit_odd.equals(bet_odd)) {
+			if (getEquals(submit_odd, bet_odd)) {
 				logger.fatal("Ha ha we can bet now !!!");
 				HtmlElement bet_button = ticket_page.createElement("button");
 				bet_button.setAttribute("onclick", "onBet();");
@@ -368,6 +398,16 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			}
 		} catch (Exception e) {
 			logger.error(ThreeInOneMemberClient.getStackTrace(e));
+		}
+	}
+
+	private boolean getEquals(String o1, String o2) {
+		try {
+			float a1 = Float.parseFloat(o1);
+			float a2 = Float.parseFloat(o2);
+			return a1 == a2;
+		} catch (NumberFormatException e) {
+			return false;
 		}
 	}
 }

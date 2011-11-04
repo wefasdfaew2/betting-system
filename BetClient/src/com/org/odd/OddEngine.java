@@ -16,13 +16,13 @@ public class OddEngine {
 	private HashMap<String, HashMap<String, Odd>> all_odd;
 	TopicPublisher sbo;
 	TopicPublisher three_in_one;
-	private boolean played = false;
+	private int played = 1;
 
-	public boolean isPlayed() {
+	public int isPlayed() {
 		return played;
 	}
 
-	public void setPlayed(boolean played) {
+	public void setPlayed(int played) {
 		this.played = played;
 	}
 
@@ -67,9 +67,9 @@ public class OddEngine {
 					if (diff(old_o.getOdd_home(), new_o.getOdd_home())
 							+ diff(old_o.getOdd_away(), new_o.getOdd_away()) > 0.5) {
 						wrong_odd.add(e.getKey());
-						logger.error("wrong odd update at :" + client_name);
-						logger.error("old" + old_o);
-						logger.error("new" + new_o);
+						// logger.error("wrong odd update at :" + client_name);
+						// logger.error("old" + old_o);
+						// logger.error("new" + new_o);
 					}
 				}
 			}
@@ -90,7 +90,7 @@ public class OddEngine {
 					HashMap<String, Odd> table = e.getValue();
 					// compare to same odd at another table
 					if (table.containsKey(o.getId())) {
-						if (!played)
+						if (played > 0)
 							this.getGoodOdd(o, table.get(o.getId()),
 									client_name, e.getKey());
 					}
@@ -134,7 +134,7 @@ public class OddEngine {
 
 				placeBet(odd1, client1, TeamType.HOME);
 				placeBet(odd2, client2, TeamType.AWAY);
-				played = true;
+				played--;
 
 			}
 		if (odd2.getOdd_home() * odd1.getOdd_away() < 0)
@@ -146,7 +146,7 @@ public class OddEngine {
 
 				placeBet(odd2, client2, TeamType.HOME);
 				placeBet(odd1, client1, TeamType.AWAY);
-				played = true;
+				played--;
 			}
 
 		if (odd1.getOdd_home() < 0 && odd2.getOdd_away() < 0) {
@@ -157,7 +157,7 @@ public class OddEngine {
 
 			placeBet(odd1, client1, TeamType.HOME);
 			placeBet(odd2, client2, TeamType.AWAY);
-			played = true;
+			played--;
 		}
 		if (odd2.getOdd_home() < 0 && odd1.getOdd_away() < 0) {
 			logger.fatal("Stupid money team2 at \n");
@@ -167,7 +167,7 @@ public class OddEngine {
 
 			placeBet(odd2, client2, TeamType.HOME);
 			placeBet(odd1, client1, TeamType.AWAY);
-			played = true;
+			played--;
 		}
 	}
 

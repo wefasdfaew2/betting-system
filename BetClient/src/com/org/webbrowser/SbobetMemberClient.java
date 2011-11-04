@@ -42,7 +42,7 @@ public class SbobetMemberClient extends Thread {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 1000;
+	private int sleep_time = 500;
 	private OddUtilities util;
 	private OddSide side;
 

@@ -81,8 +81,8 @@ public class OddUtilities {
 			}
 			if (team1.equals("") || team2.equals(""))
 				continue;
-			team1 = team1.toUpperCase();
-			team2 = team2.toUpperCase();
+			team1 = team1.trim().toUpperCase();
+			team2 = team2.trim().toUpperCase();
 			String handicap = "";
 			try {
 				handicap = row.getCell(4).asText().trim();
@@ -200,8 +200,8 @@ public class OddUtilities {
 					e.printStackTrace();
 					continue;
 				}
-				team1 = team1.toUpperCase();
-				team2 = team2.toUpperCase();
+				team1 = team1.trim().toUpperCase();
+				team2 = team2.trim().toUpperCase();
 				if (team1.equals("") || team2.equals(""))
 					continue;
 				try {

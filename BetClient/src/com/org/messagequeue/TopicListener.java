@@ -78,14 +78,17 @@ public class TopicListener implements MessageListener {
 				ObjectMessage mes = (ObjectMessage) message;
 				HashMap<String, Odd> odds = (HashMap<String, Odd>) mes
 						.getObject();
-				// logOddtable(odds);
+				// logOddtable(odds, message.getStringProperty("username"));
 				this.processOdd(odds, message.getStringProperty("username"));
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
 				logger.info(mes.getText());
-				if (mes.getText().equals("1")) {
-					this.engine.setPlayed(false);
-					logger.info("play again");
+				try {
+					int p = Integer.parseInt(mes.getText());
+					this.engine.setPlayed(p);
+					logger.info("play again " + p + "time");
+				} catch (Exception e) {
+
 				}
 			}
 			// logger.info(((ObjectMessage)message));
@@ -95,10 +98,10 @@ public class TopicListener implements MessageListener {
 		}
 	}
 
-	public void logOddtable(HashMap<String, Odd> odds) {
+	public void logOddtable(HashMap<String, Odd> odds, String client) {
 		for (Entry<String, Odd> e : odds.entrySet()) {
-			if (e.getValue().getHome().equals("FC Copenhagen".toUpperCase()))
-				logger.info(e.getValue());
+			// if (e.getValue().getHome().equals("Barcelona U19".toUpperCase()))
+			logger.info(client + ":" + e.getValue());
 		}
 	}
 

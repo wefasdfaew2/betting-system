@@ -52,7 +52,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 1000;
+	private int sleep_time = 500;
 	private OddUtilities util;
 	private OddSide side;
 	private HtmlPage page;
@@ -104,7 +104,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	}
 
 	public void sbobetMemberHomepage() throws FailingHttpStatusCodeException,
-			MalformedURLException, IOException, InterruptedException {
+			MalformedURLException, IOException, InterruptedException,
+			JMSException {
 		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
@@ -152,6 +153,22 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 		Thread.sleep(15000);
 
+		HtmlPage left_page = (HtmlPage) webClient.getWebWindowByName(
+				"leftFrame").getEnclosedPage();
+		if (this.side == OddSide.EARLY) {
+			// navigate to early market page
+			HtmlElement e = left_page.createElement("a");
+			e.setAttribute("onclick", "javascript:onClickMarket('1',3);");
+			left_page.appendChild(e);
+			e.click();
+		} else {
+			// navigate to today page (contain both live and non live)
+			HtmlElement e = left_page.createElement("a");
+			e.setAttribute("onclick", "javascript:onClickMarket('1',2);");
+			left_page.appendChild(e);
+			e.click();
+		}
+
 		odd_page = (HtmlPage) webClient.getWebWindowByName("mainFrame")
 				.getEnclosedPage();
 
@@ -179,7 +196,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		}
 
 		while (true) {
-			if (this.side == OddSide.LIVE) {
+			if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 				refresh_live.click();
 				Thread.sleep(sleep_time);
 				if (odd_page.getElementById("levents") != null
@@ -190,10 +207,19 @@ public class SbobetPlayer extends Thread implements MessageListener {
 							.getFirstChild();
 					table = (HtmlTable) table.getBodies().get(0).getRows()
 							.get(0).getCell(0).getFirstChild();
+
+					p.sendMapMessage(this.util.getOddsFromSobet(table),
+							"sbobet");
+
 				}
 			}
-			if (this.side == OddSide.NON_LIVE) {
-				refresh_nonlive.click();
+			// non live, early and today both table in div "events"
+			if (this.side == OddSide.NON_LIVE || this.side == OddSide.EARLY
+					|| this.side == OddSide.TODAY) {
+				if (this.side == OddSide.NON_LIVE)
+					refresh_nonlive.click();
+				else if (this.side == OddSide.EARLY)
+					refresh_live.click();
 				Thread.sleep(sleep_time);
 				if (odd_page.getElementById("events") != null
 						&& odd_page.getElementById("events").getFirstChild() != null
@@ -203,6 +229,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 							"events").getFirstChild();
 					table_nonlive = (HtmlTable) table_nonlive.getBodies()
 							.get(0).getRows().get(0).getCell(0).getFirstChild();
+					p.sendMapMessage(this.util.getOddsFromSobet(table_nonlive),
+							"sbobet");
 				}
 			}
 			i++;
@@ -267,13 +295,27 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	}
 
 	public void placeBet(String xpath) {
-		HtmlElement odd_element = (HtmlElement) ((HtmlElement) this.odd_page
-				.getFirstByXPath(xpath)).getFirstChild();
-		odd_element.setAttribute("onclick", "od_OnClick(0, event)");
-		logger.info(odd_element.asXml());
-		HtmlPage tmp_page;
 		try {
-			tmp_page = odd_element.click();
+			HtmlElement odd_element = (HtmlElement) ((HtmlElement) this.odd_page
+					.getFirstByXPath(xpath)).getFirstChild();
+			// from the xpath find the div which contain the action that the
+			// span element missing
+			String[] xpath_element = xpath.split("/");
+			String div_xpath = xpath_element[0] + xpath_element[1]
+					+ xpath_element[2];
+			HtmlElement div_element = this.odd_page.getFirstByXPath(div_xpath);
+			String div_javascript = div_element.getAttribute("onclick");
+			odd_element.setAttribute("onclick", div_javascript);
+
+//			if (this.side == OddSide.LIVE || this.side == OddSide.EARLY)
+//				odd_element.setAttribute("onclick", "od_OnClick(0, event)");
+//			else if (this.side == OddSide.NON_LIVE)
+//				odd_element.setAttribute("onclick", "od_OnClick(1, event)");
+			
+			String submit_odd = odd_element.asText();
+			logger.info(odd_element.asXml());
+
+			odd_element.click();
 			Thread.sleep(100);
 
 			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
@@ -281,7 +323,6 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 			HtmlElement e = (HtmlElement) ticket_page.getElementsByTagName(
 					"script").get(0);
-			e.setAttribute("type", "text/JavaScript");
 			String javascript = e.asXml().split("\n")[2].replaceAll(
 					"parent.leftWindow.", "");
 			// logger.info(javascript);
@@ -293,22 +334,39 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			// logger.info(e.asXml());
 			ticket_div.appendChild(e);
 			e.click();
+			Thread.sleep(100);
+			// after open ticket form then find the real odd
+			String bet_odd = ticket_div.getElementById("ticoddsVal").asText();
+
+			logger.info("submitted to bet :" + submit_odd);
+			logger.info("real odd to bet :" + bet_odd);
 			// fill the stake
 			HtmlElement stake_input = ticket_div.getElementById("stake");
 			stake_input.setAttribute("value", "10");
-			// virtual element to place bet
-			e = ticket_div.createElement("a");
-			e.setAttribute("onclick", "return placebet();");
-			ticket_div.appendChild(e);
-			e.click();
-
 			logger.info(ticket_div.asText());
+			// virtual element to place bet
+			if (getEquals(submit_odd, bet_odd)) {
+				logger.info("match odd accept now bet ha ha!");
+				e = ticket_div.createElement("a");
+				e.setAttribute("onclick", "return placebet();");
+				ticket_div.appendChild(e);
+				e.click();
+			}
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.error(ThreeInOneMemberClient.getStackTrace(e));
-			logger.error(ticket_page.asXml());
-		} 
+		}
 
+	}
+
+	private boolean getEquals(String o1, String o2) {
+		try {
+			float a1 = Float.parseFloat(o1);
+			float a2 = Float.parseFloat(o2);
+			return a1 == a2;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
 }

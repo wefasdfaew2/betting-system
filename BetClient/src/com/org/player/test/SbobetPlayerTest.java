@@ -10,14 +10,16 @@ public class SbobetPlayerTest {
 	@Test
 	public void testSboHomePage() {
 		while (true) {
+			SbobetPlayer client = null;
 			try {
-				SbobetPlayer client = new SbobetPlayer(
-						"Maj3259002", "aaaa1111", OddSide.LIVE);
+				client = new SbobetPlayer("Maj3259002", "aaaa1111",
+						OddSide.TODAY);
 
-				client.run();
+				client.start();
 				client.join();
+				Thread.sleep(5000);
 			} catch (Exception e) {
-				e.printStackTrace();
+				client.getLogger().error(SbobetPlayer.getStackTrace(e));
 			}
 		}
 	}

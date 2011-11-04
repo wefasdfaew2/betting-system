@@ -3,6 +3,7 @@ package com.org.player.test;
 import org.junit.Test;
 
 import com.org.odd.OddSide;
+import com.org.player.SbobetPlayer;
 import com.org.player.ThreeInOnePlayer;
 import com.org.webbrowser.ThreeInOneMemberClient;
 
@@ -14,14 +15,13 @@ public class ThreeInOnePlayerTest {
 			ThreeInOnePlayer client = null;
 			try {
 				client = new ThreeInOnePlayer("lvmml7006002", "bbbb1111",
-						OddSide.LIVE);
+						OddSide.TODAY);
 
 				client.start();
 				client.join();
 				Thread.sleep(5000);
-				return;
 			} catch (Exception e) {
-				client.getLogger().error(e);
+				client.getLogger().error(ThreeInOnePlayer.getStackTrace(e));
 			}
 		}
 	}
