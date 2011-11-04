@@ -11,7 +11,7 @@ public class SbobetMasterTest {
 	public void unittest() {
 		AccountImporter master = new AccountImporter(
 				"E:\\Dev\\acc\\listAcc_maj3168200_267.txt");
-		int num_thread = 5;
+		int num_thread = 2;
 		try {
 			while (true) {
 				int i = 0;
