@@ -9,6 +9,7 @@ import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
+import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
 
@@ -27,7 +28,7 @@ public class TopicPublisher {
 	private Connection connection;
 	private Session session;
 	private MessageProducer publisher;
-	private Topic topic;
+	private Queue topic;
 	private String url = "tcp://localhost:61616";
 
 	@Test
@@ -41,7 +42,7 @@ public class TopicPublisher {
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		connection = factory.createConnection();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		topic = session.createTopic("topictest.messages");
+		topic = session.createQueue("topictest.messages");
 		publisher = session.createProducer(topic);
 		publisher.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 		connection.start();
@@ -52,7 +53,7 @@ public class TopicPublisher {
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		connection = factory.createConnection();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		topic = session.createTopic(topicname);
+		topic = session.createQueue(topicname);
 		publisher = session.createProducer(topic);
 		publisher.setDeliveryMode(DeliveryMode.PERSISTENT);
 		connection.start();

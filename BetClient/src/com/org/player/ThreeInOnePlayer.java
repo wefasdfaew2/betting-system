@@ -19,6 +19,7 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
+import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
@@ -79,7 +80,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		Connection connection = factory.createConnection();
 		Session session = connection.createSession(false,
 				Session.AUTO_ACKNOWLEDGE);
-		Topic topic = session.createTopic(this.username);
+		Queue topic = session.createQueue(this.username);
 		MessageConsumer consumer = session.createConsumer(topic);
 		consumer.setMessageListener(this);
 		connection.start();
