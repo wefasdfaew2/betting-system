@@ -16,6 +16,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.junit.Test;
 
 import com.org.odd.Odd;
+import com.org.odd.TeamType;
 
 /**
  * Use in conjunction with TopicListener to test the performance of ActiveMQ
@@ -34,6 +35,7 @@ public class TopicPublisher {
 		TopicPublisher p = new TopicPublisher();
 		p.sendMessage("fuck you dog");
 	}
+
 	public TopicPublisher() throws JMSException {
 		super();
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
@@ -41,10 +43,10 @@ public class TopicPublisher {
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		topic = session.createTopic("topictest.messages");
 		publisher = session.createProducer(topic);
-		publisher.setDeliveryMode(DeliveryMode.PERSISTENT);
+		publisher.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 		connection.start();
 	}
-	
+
 	public TopicPublisher(String topicname) throws JMSException {
 		super();
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
@@ -63,7 +65,16 @@ public class TopicPublisher {
 	public void sendMapMessage(HashMap<String, Odd> odds, String username)
 			throws JMSException {
 		ObjectMessage m = session.createObjectMessage(odds);
-		m.setStringProperty("username", username);		
+		m.setStringProperty("username", username);
+		publisher.send(m);
+	}
+
+	public void sendOddMessage(Odd o, TeamType type) throws JMSException {
+		ObjectMessage m = session.createObjectMessage(o);
+		if (type == TeamType.HOME)
+			m.setBooleanProperty("home", true);
+		else if (type == TeamType.AWAY)
+			m.setBooleanProperty("home", false);
 		publisher.send(m);
 	}
 

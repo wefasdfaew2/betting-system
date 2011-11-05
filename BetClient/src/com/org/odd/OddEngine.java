@@ -14,6 +14,7 @@ import com.org.messagequeue.TopicPublisher;
 public class OddEngine {
 	private Logger logger;
 	private HashMap<String, HashMap<String, Odd>> all_odd;
+	private HashMap<String, Long> time_stamp;
 	TopicPublisher sbo;
 	TopicPublisher three_in_one;
 	private int played = 1;
@@ -29,8 +30,9 @@ public class OddEngine {
 	public OddEngine(Logger logger) {
 		this.logger = logger;
 		this.all_odd = new HashMap<String, HashMap<String, Odd>>();
+		this.time_stamp = new HashMap<String, Long>();
 		try {
-			this.sbo = new TopicPublisher("Maj3259002");
+			this.sbo = new TopicPublisher("Maj3259005");
 			this.three_in_one = new TopicPublisher("lvmml7006002");
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
@@ -78,7 +80,8 @@ public class OddEngine {
 			}
 		}
 		this.all_odd.put(client_name, odds);
-
+		long time_get = System.currentTimeMillis();
+		this.time_stamp.put(client_name, time_get);
 		// Start compare
 		for (Odd o : odds.values()) {
 			// compare to all other table
@@ -90,7 +93,8 @@ public class OddEngine {
 					HashMap<String, Odd> table = e.getValue();
 					// compare to same odd at another table
 					if (table.containsKey(o.getId())) {
-						if (played > 0)
+						if (played > 0
+								&& (time_get - time_stamp.get(e.getKey())) < 1000)
 							this.getGoodOdd(o, table.get(o.getId()),
 									client_name, e.getKey());
 					}
@@ -109,16 +113,16 @@ public class OddEngine {
 			throws JMSException {
 		if (t == TeamType.HOME) {
 			if (client.equals("3in")) {
-				this.three_in_one.sendMessage(odd.getOdd_home_xpath());
+				this.three_in_one.sendOddMessage(odd, TeamType.HOME);
 			} else if (client.equals("sbobet")) {
-				this.sbo.sendMessage(odd.getOdd_home_xpath());
+				this.sbo.sendOddMessage(odd, TeamType.HOME);
 			}
 		}
 		if (t == TeamType.AWAY) {
 			if (client.equals("3in")) {
-				this.three_in_one.sendMessage(odd.getOdd_away_xpath());
+				this.three_in_one.sendOddMessage(odd, TeamType.AWAY);
 			} else if (client.equals("sbobet")) {
-				this.sbo.sendMessage(odd.getOdd_away_xpath());
+				this.sbo.sendOddMessage(odd, TeamType.AWAY);
 			}
 		}
 	}

@@ -47,6 +47,21 @@ public class TopicListener implements MessageListener {
 	public static void main(String[] argv) throws Exception {
 		TopicListener l = new TopicListener("topictest.messages");
 		l.run();
+		// do polling with 3in1 client
+		TopicPublisher p = new TopicPublisher("lvmml7006002");
+		TopicPublisher p1 = new TopicPublisher("lvmml7006003");
+		TopicPublisher p2 = new TopicPublisher("lvmml7006004");
+		TopicPublisher p3 = new TopicPublisher("lvmml7006005");
+		while (true) {
+			p.sendMessage("UPDATE");
+			Thread.sleep(1000);
+			p1.sendMessage("UPDATE");
+			Thread.sleep(1000);
+			p2.sendMessage("UPDATE");
+			Thread.sleep(1000);
+			p3.sendMessage("UPDATE");
+			Thread.sleep(1000);			
+		}
 	}
 
 	public void run() throws JMSException {
@@ -79,7 +94,7 @@ public class TopicListener implements MessageListener {
 				HashMap<String, Odd> odds = (HashMap<String, Odd>) mes
 						.getObject();
 				logOddtable(odds, message.getStringProperty("username"));
-//				this.processOdd(odds, message.getStringProperty("username"));
+				// this.processOdd(odds, message.getStringProperty("username"));
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
 				logger.info(mes.getText());
@@ -100,7 +115,8 @@ public class TopicListener implements MessageListener {
 
 	public void logOddtable(HashMap<String, Odd> odds, String client) {
 		for (Entry<String, Odd> e : odds.entrySet()) {
-			// if (e.getValue().getHome().equals("Barcelona U19".toUpperCase()))
+			// if (e.getValue().getHome().equals("AIS U21".toUpperCase())
+			// && e.getValue().getType() == OddType.HDP_FULLTIME)
 			logger.info(client + ":" + e.getValue());
 		}
 	}

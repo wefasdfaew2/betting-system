@@ -71,16 +71,7 @@ public class Odd implements Serializable {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((away == null) ? 0 : away.hashCode());
-		result = prime * result
-				+ ((handicap == null) ? 0 : handicap.hashCode());
-		result = prime * result + ((home == null) ? 0 : home.hashCode());
-		result = prime * result + Float.floatToIntBits(odd_away);
-		result = prime * result + Float.floatToIntBits(odd_home);
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		return result;
+		return this.getId().hashCode();
 	}
 
 	@Override
@@ -92,30 +83,7 @@ public class Odd implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		Odd other = (Odd) obj;
-		if (away == null) {
-			if (other.away != null)
-				return false;
-		} else if (!away.equals(other.away))
-			return false;
-		if (handicap == null) {
-			if (other.handicap != null)
-				return false;
-		} else if (!handicap.equals(other.handicap))
-			return false;
-		if (home == null) {
-			if (other.home != null)
-				return false;
-		} else if (!home.equals(other.home))
-			return false;
-		if (Float.floatToIntBits(odd_away) != Float
-				.floatToIntBits(other.odd_away))
-			return false;
-		if (Float.floatToIntBits(odd_home) != Float
-				.floatToIntBits(other.odd_home))
-			return false;
-		if (type != other.type)
-			return false;
-		return true;
+		return this.getId().equals(other.getId());
 	}
 
 	@Override

@@ -16,28 +16,29 @@ public class ThreeInOnePlayerTest {
 			ThreeInOnePlayer client1 = null;
 			ThreeInOnePlayer client2 = null;
 			ThreeInOnePlayer client3 = null;
+			OddSide side = OddSide.LIVE;
 			try {
 				client = new ThreeInOnePlayer("lvmml7006002", "bbbb1111",
-						OddSide.TODAY);
+						side);
 				client1 = new ThreeInOnePlayer("lvmml7006003", "bbbb1111",
-						OddSide.TODAY);				
+						side);				
 				client2 = new ThreeInOnePlayer("lvmml7006004", "bbbb1111",
-						OddSide.TODAY);
+						side);
 				client3 = new ThreeInOnePlayer("lvmml7006005", "bbbb1111",
-						OddSide.TODAY);
+						side);
 				
 				client.start();
-				Thread.sleep(10000);
+//				Thread.sleep(10000);
 				client1.start();
 //				Thread.sleep(10000);
-//				client2.start();
+				client2.start();
 //				Thread.sleep(10000);
-//				client3.start();
+				client3.start();
 				
 				client.join();
 				client1.join();
-//				client2.join();
-//				client3.join();
+				client2.join();
+				client3.join();
 				
 				Thread.sleep(5000);
 			} catch (Exception e) {

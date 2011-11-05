@@ -13,22 +13,23 @@ public class SbobetPlayerTest {
 			SbobetPlayer client = null;
 			SbobetPlayer client1 = null;
 			SbobetPlayer player = null;
+			OddSide side = OddSide.LIVE;
 			try {
 				client = new SbobetPlayer("maj3168200", "aaaa1111",
-						OddSide.TODAY, true);
-				client1 = new SbobetPlayer("maj3168201", "aaaa1111",
-						OddSide.TODAY, true);
+						side, true);
+				client1 = new SbobetPlayer("Maj3259004", "aaaa1111",
+						side, false);
 				// player can listen to bet
 				player = new SbobetPlayer("Maj3259005", "aaaa1111",
-						OddSide.TODAY, false);
+						side, false);
 
 				player.start();
 				client.start();
-				client1.start();
-				
+				// client1.start();
+
 				player.join();
 				client.join();
-				client1.join();
+				// client1.join();
 
 				Thread.sleep(5000);
 			} catch (Exception e) {
