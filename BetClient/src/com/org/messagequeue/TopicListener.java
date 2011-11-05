@@ -53,14 +53,19 @@ public class TopicListener implements MessageListener {
 		TopicPublisher p1 = new TopicPublisher("lvmml7006003");
 		TopicPublisher p2 = new TopicPublisher("lvmml7006004");
 		TopicPublisher p3 = new TopicPublisher("lvmml7006005");
+		TopicPublisher s = new TopicPublisher("Maj3259005");
 		while (true) {
 			p.sendMessage("UPDATE");
+			s.sendMessage("UPDATE");
 			Thread.sleep(1000);
 			p1.sendMessage("UPDATE");
+			s.sendMessage("UPDATE");
 			Thread.sleep(1000);
 			p2.sendMessage("UPDATE");
+			s.sendMessage("UPDATE");
 			Thread.sleep(1000);
 			p3.sendMessage("UPDATE");
+			s.sendMessage("UPDATE");
 			Thread.sleep(1000);			
 		}
 	}
