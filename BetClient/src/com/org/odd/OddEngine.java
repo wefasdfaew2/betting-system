@@ -56,7 +56,7 @@ public class OddEngine {
 	}
 
 	public void addOdd(HashMap<String, Odd> odds, String client_name)
-			throws JMSException {	
+			throws JMSException {
 		// update new odd
 		// this.all_odd.put(client_name, odds);
 		HashMap<String, Odd> old_map = this.all_odd.get(client_name);
@@ -123,7 +123,8 @@ public class OddEngine {
 	public void getGoodOdd(Odd odd1, Odd odd2, String client1, String client2)
 			throws JMSException {
 		if (odd1.getOdd_home() * odd2.getOdd_away() < 0)
-			if (odd1.getOdd_home() + odd2.getOdd_away() > 0) {
+			if (odd1.getOdd_home() + odd2.getOdd_away() > 0
+					&& odd1.getOdd_home() + odd2.getOdd_away() < 0.10) {
 				logger.fatal("money team1 at \n");
 				logger.fatal(odd1 + " and \n");
 				logger.fatal(odd2);
@@ -135,7 +136,8 @@ public class OddEngine {
 
 			}
 		if (odd2.getOdd_home() * odd1.getOdd_away() < 0)
-			if (odd2.getOdd_home() + odd1.getOdd_away() > 0) {
+			if (odd2.getOdd_home() + odd1.getOdd_away() > 0
+					&& odd2.getOdd_home() + odd1.getOdd_away() < 0.10) {
 				logger.fatal("money team2 at \n");
 				logger.fatal(odd1 + " and \n");
 				logger.fatal(odd2);
@@ -146,7 +148,8 @@ public class OddEngine {
 				played--;
 			}
 
-		if (odd1.getOdd_home() < 0 && odd2.getOdd_away() < 0) {
+		if (odd1.getOdd_home() < 0 && odd2.getOdd_away() < 0
+				&& (2 + odd1.getOdd_home() + odd2.getOdd_away() < 0.10)) {
 			logger.fatal("Stupid money team1 at \n");
 			logger.fatal(odd1 + " and \n");
 			logger.fatal(odd2);
@@ -156,7 +159,8 @@ public class OddEngine {
 			placeBet(odd2, client2, TeamType.AWAY);
 			played--;
 		}
-		if (odd2.getOdd_home() < 0 && odd1.getOdd_away() < 0) {
+		if (odd2.getOdd_home() < 0 && odd1.getOdd_away() < 0
+				&& (2 + odd2.getOdd_home() + odd1.getOdd_away()) < 0.10) {
 			logger.fatal("Stupid money team2 at \n");
 			logger.fatal(odd1 + " and \n");
 			logger.fatal(odd2);

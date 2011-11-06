@@ -64,7 +64,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	HtmlElement refresh_early;
 	private boolean isPolling = false;
 	private HtmlElement stop_button;
-	
 
 	public static void main(String[] argv) throws JMSException,
 			FailingHttpStatusCodeException, MalformedURLException, IOException,
@@ -157,7 +156,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
+		webClient = new WebClient(BrowserVersion.FIREFOX_3);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
@@ -251,7 +250,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		table = (HtmlTable) odd_page.getElementById("tblData5");
 		table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
 
-		// sendData(table, table_nonlive);		
+		// sendData(table, table_nonlive);
 
 		// virtual button to click refresh, call javascript skip check time
 		refresh_live = odd_page.createElement("button");
@@ -274,11 +273,11 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 						"onclick",
 						"var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		odd_page.appendChild(refresh_early);
-		
+
 		stop_button = odd_page.createElement("button");
 		stop_button.setAttribute("onclick", "window.stop()");
 		odd_page.appendChild(stop_button);
-		
+
 		// establish connection
 		try {
 			this.startConnection();
@@ -326,7 +325,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			// p.sendMessage(d);
 		}
 		this.sendData(map_odds);
-		stop_button.click();
+		// stop_button.click();
 		this.isPolling = false;
 	}
 
@@ -375,19 +374,19 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				boolean is_home = mes.getBooleanProperty("home");
 				// do update again to up to newest odd, if crawl exactly do not
 				// need to do this
-				HashMap<String, OddElement> tmp_map = new HashMap<String, OddElement>();
-				if (table_nonlive != null)
-					tmp_map.putAll(this.util
-							.getOddsFromThreeInOne(table_nonlive));
-				if (table != null)
-					tmp_map.putAll(this.util.getOddsFromThreeInOne(table));
-
-				if (tmp_map.containsKey(odd.getId())) {
-					logger.info(tmp_map.get(odd.getId()).getOdd());
+				try {
+					this.doPolling();
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				if (this.current_map_odds.containsKey(odd.getId())) {
+					logger.info(odd);
 					if (is_home)
-						this.placeBet(tmp_map.get(odd.getId()).getHome());
+						this.placeBet(this.current_map_odds.get(odd.getId())
+								.getHome());
 					else
-						this.placeBet(tmp_map.get(odd.getId()).getAway());
+						this.placeBet(this.current_map_odds.get(odd.getId())
+								.getAway());
 				} else {
 					logger.info("odd disapear...");
 				}
@@ -413,7 +412,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		try {
 			HtmlElement odd_element = (HtmlElement) element.getFirstChild();
 			// String submit_odd = odd_element.asText();
-			// logger.info(odd_element.asXml());
+			logger.info(odd_element.asXml());
 
 			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
 					"fraPanel").getEnclosedPage();
