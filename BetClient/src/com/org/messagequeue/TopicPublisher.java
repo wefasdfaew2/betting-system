@@ -29,7 +29,7 @@ public class TopicPublisher {
 	private Session session;
 	private MessageProducer publisher;
 	private Queue topic;
-	private String url = "tcp://localhost:61616";
+	private String url = "tcp://localhost:61616?jms.useAsyncSend=true";
 
 	@Test
 	public void unittest() throws Exception {
@@ -40,6 +40,7 @@ public class TopicPublisher {
 	public TopicPublisher() throws JMSException {
 		super();
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
+		factory.setUseAsyncSend(true);
 		connection = factory.createConnection();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		topic = session.createQueue("topictest.messages");
@@ -51,11 +52,12 @@ public class TopicPublisher {
 	public TopicPublisher(String topicname) throws JMSException {
 		super();
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
+		factory.setUseAsyncSend(true);
 		connection = factory.createConnection();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		topic = session.createQueue(topicname);
 		publisher = session.createProducer(topic);
-		publisher.setDeliveryMode(DeliveryMode.PERSISTENT);
+		publisher.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 		connection.start();
 	}
 

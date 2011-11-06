@@ -33,7 +33,7 @@ public class TopicListener implements MessageListener {
 	private Connection connection;
 	private Session session;
 	private Queue topic;
-	private String url = "tcp://localhost:61616";
+	private String url = "tcp://localhost:61616?jms.useAsyncSend=true";
 	private OddEngine engine;
 	private String topicname;
 
@@ -54,6 +54,9 @@ public class TopicListener implements MessageListener {
 		TopicPublisher p2 = new TopicPublisher("lvmml7006004");
 		TopicPublisher p3 = new TopicPublisher("lvmml7006005");
 		TopicPublisher s = new TopicPublisher("Maj3259005");
+		TopicPublisher s1 = new TopicPublisher("maj3168200");
+		TopicPublisher s2 = new TopicPublisher("maj3168201");
+		TopicPublisher s3 = new TopicPublisher("maj3168202");
 		while (true) {
 			p.sendMessage("UPDATE");
 			s.sendMessage("UPDATE");
@@ -66,12 +69,13 @@ public class TopicListener implements MessageListener {
 			Thread.sleep(1000);
 			p3.sendMessage("UPDATE");
 			s.sendMessage("UPDATE");
-			Thread.sleep(1000);			
+			Thread.sleep(1000);
 		}
 	}
 
 	public void run() throws JMSException {
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
+		factory.setUseAsyncSend(true);
 		connection = factory.createConnection();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		topic = session.createQueue(this.topicname);
@@ -99,8 +103,8 @@ public class TopicListener implements MessageListener {
 				ObjectMessage mes = (ObjectMessage) message;
 				HashMap<String, Odd> odds = (HashMap<String, Odd>) mes
 						.getObject();
-				logOddtable(odds, message.getStringProperty("username"));
-				// this.processOdd(odds, message.getStringProperty("username"));
+				// logOddtable(odds, message.getStringProperty("username"));
+				this.processOdd(odds, message.getStringProperty("username"));
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
 				logger.info(mes.getText());

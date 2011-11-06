@@ -75,7 +75,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	}
 
 	public void startConnection() throws JMSException {
-		String url = "tcp://localhost:61616";
+		String url = "tcp://localhost:61616?jms.useAsyncSend=true";
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		Connection connection = factory.createConnection();
 		Session session = connection.createSession(false,
@@ -221,6 +221,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 		// tblData5
 		// Process get table and display
+		ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
+		"fraPanel").getEnclosedPage();
+		
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
 
@@ -332,7 +335,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		try {
 			doPolling();
 		} catch (Exception e) {
-			logger.error(getStackTrace(e));
+			e.printStackTrace();
 		}
 	}
 

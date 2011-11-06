@@ -83,7 +83,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	}
 
 	public void startConnection() throws JMSException {
-		String url = "tcp://localhost:61616";
+		String url = "tcp://localhost:61616?jms.useAsyncSend=true";
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		Connection connection = factory.createConnection();
 		Session session = connection.createSession(false,
