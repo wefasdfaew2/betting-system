@@ -160,8 +160,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
-		// webClient.setThrowExceptionOnScriptError(false);
-		// webClient.setThrowExceptionOnFailingStatusCode(false);
+		webClient.setThrowExceptionOnScriptError(false);
+		webClient.setThrowExceptionOnFailingStatusCode(false);
 
 		page = webClient.getPage("http://www.3in1bet.com");
 

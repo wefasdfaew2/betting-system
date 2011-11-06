@@ -123,7 +123,7 @@ public class OddEngine {
 	public void getGoodOdd(Odd odd1, Odd odd2, String client1, String client2)
 			throws JMSException {
 		if (odd1.getOdd_home() * odd2.getOdd_away() < 0)
-			if (odd1.getOdd_home() + odd2.getOdd_away() > 0.05) {
+			if (odd1.getOdd_home() + odd2.getOdd_away() > 0) {
 				logger.fatal("money team1 at \n");
 				logger.fatal(odd1 + " and \n");
 				logger.fatal(odd2);
@@ -135,7 +135,7 @@ public class OddEngine {
 
 			}
 		if (odd2.getOdd_home() * odd1.getOdd_away() < 0)
-			if (odd2.getOdd_home() + odd1.getOdd_away() > 0.05) {
+			if (odd2.getOdd_home() + odd1.getOdd_away() > 0) {
 				logger.fatal("money team2 at \n");
 				logger.fatal(odd1 + " and \n");
 				logger.fatal(odd2);
