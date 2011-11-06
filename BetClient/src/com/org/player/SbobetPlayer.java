@@ -50,7 +50,6 @@ import com.org.odd.Odd;
 import com.org.odd.OddElement;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
-import com.org.webbrowser.ThreeInOneMemberClient;
 
 public class SbobetPlayer extends Thread implements MessageListener {
 	private TopicPublisher p;
@@ -418,7 +417,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.info(ticket_page.asXml());
-			logger.error(ThreeInOneMemberClient.getStackTrace(e));
+			logger.error(StackTraceUtil.getStackTrace(e));
 		}
 
 	}

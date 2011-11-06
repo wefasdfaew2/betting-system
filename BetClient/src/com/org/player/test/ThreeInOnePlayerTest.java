@@ -5,7 +5,6 @@ import org.junit.Test;
 import com.org.odd.OddSide;
 import com.org.player.SbobetPlayer;
 import com.org.player.ThreeInOnePlayer;
-import com.org.webbrowser.ThreeInOneMemberClient;
 
 public class ThreeInOnePlayerTest {
 

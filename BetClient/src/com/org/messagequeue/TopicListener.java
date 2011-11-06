@@ -24,7 +24,7 @@ import org.apache.log4j.PropertyConfigurator;
 import com.org.odd.Odd;
 import com.org.odd.OddEngine;
 import com.org.odd.OddType;
-import com.org.webbrowser.ThreeInOneMemberClient;
+import com.org.player.StackTraceUtil;
 
 /**
  * Use in conjunction with TopicPublisher to test the performance of ActiveMQ
@@ -78,7 +78,7 @@ public class TopicListener implements MessageListener {
 			this.engine.addOdd(odds, client_name);
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
-			logger.error(ThreeInOneMemberClient.getStackTrace(e));
+			logger.error(StackTraceUtil.getStackTrace(e));
 		}
 	}
 

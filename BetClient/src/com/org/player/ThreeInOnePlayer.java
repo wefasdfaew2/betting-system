@@ -48,7 +48,6 @@ import com.org.odd.Odd;
 import com.org.odd.OddElement;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
-import com.org.webbrowser.ThreeInOneMemberClient;
 
 public class ThreeInOnePlayer extends Thread implements MessageListener {
 	private final Logger logger;
@@ -442,7 +441,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			//
 			// }
 		} catch (Exception e) {
-			logger.error(ThreeInOneMemberClient.getStackTrace(e));
+			logger.error(StackTraceUtil.getStackTrace(e));
 		}
 	}
 
