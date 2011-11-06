@@ -56,35 +56,28 @@ public class OddEngine {
 	}
 
 	public void addOdd(HashMap<String, Odd> odds, String client_name)
-			throws JMSException {
-		// put new odd into
-		// remove wrong odd from 3in bet
-		List<String> wrong_odd = new ArrayList<String>();
-		if (this.all_odd.containsKey(client_name)) {
-			HashMap<String, Odd> old_odds = this.all_odd.get(client_name);
-			for (Entry<String, Odd> e : odds.entrySet()) {
-				// check if old odd are so differ
-				if (old_odds.containsKey(e.getKey())) {
-					Odd old_o = old_odds.get(e.getKey());
-					Odd new_o = e.getValue();
-					if (diff(old_o.getOdd_home(), new_o.getOdd_home())
-							+ diff(old_o.getOdd_away(), new_o.getOdd_away()) > 0.5) {
-						wrong_odd.add(e.getKey());
-						// logger.error("wrong odd update at :" + client_name);
-						// logger.error("old" + old_o);
-						// logger.error("new" + new_o);
-					}
-				}
-			}
-			for (String key : wrong_odd) {
-				odds.remove(key);
+			throws JMSException {	
+		// update new odd
+		// this.all_odd.put(client_name, odds);
+		HashMap<String, Odd> old_map = this.all_odd.get(client_name);
+		if (old_map == null)
+			old_map = new HashMap<String, Odd>();
+		// iter through new update odd
+		for (Entry<String, Odd> e : odds.entrySet()) {
+			if (e.getValue() == null) {
+				old_map.remove(e.getKey());
+			} else {
+				old_map.put(e.getKey(), e.getValue());
 			}
 		}
-		this.all_odd.put(client_name, odds);
+		// update
+		this.all_odd.put(client_name, old_map);
+		// now old odd is updated, start compare
+
 		long time_get = System.currentTimeMillis();
 		this.time_stamp.put(client_name, time_get);
 		// Start compare
-		for (Odd o : odds.values()) {
+		for (Odd o : old_map.values()) {
 			// compare to all other table
 			for (Entry<String, HashMap<String, Odd>> e : this.all_odd
 					.entrySet()) {

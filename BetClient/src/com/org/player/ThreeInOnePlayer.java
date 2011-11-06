@@ -381,7 +381,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				if (table != null)
 					tmp_map.putAll(this.util.getOddsFromThreeInOne(table));
 
-				if (tmp_map.containsKey(odd)) {
+				if (tmp_map.containsKey(odd.getId())) {
+					logger.info(tmp_map.get(odd.getId()).getOdd());
 					if (is_home)
 						this.placeBet(tmp_map.get(odd.getId()).getHome());
 					else
@@ -389,7 +390,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				} else {
 					logger.info("odd disapear...");
 				}
-				logger.info(odd);
+//				logger.info(odd);
 
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;

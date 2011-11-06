@@ -1,5 +1,6 @@
 package com.org.messagequeue;
 
+import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -16,6 +17,7 @@ import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -36,6 +38,7 @@ public class TopicListener implements MessageListener {
 	private String url = "tcp://localhost:61616?jms.useAsyncSend=true";
 	private OddEngine engine;
 	private String topicname;
+	
 
 	public TopicListener(String topicname) {
 		System.setProperty("filename", "listenner_log.log");
@@ -47,33 +50,17 @@ public class TopicListener implements MessageListener {
 
 	public static void main(String[] argv) throws Exception {
 		TopicListener l = new TopicListener("topictest.messages");
-		l.run();
-		// do polling with 3in1 client
-		TopicPublisher p = new TopicPublisher("lvmml7006002");
-		TopicPublisher p1 = new TopicPublisher("lvmml7006003");
-		TopicPublisher p2 = new TopicPublisher("lvmml7006004");
-		TopicPublisher p3 = new TopicPublisher("lvmml7006005");
-		TopicPublisher s = new TopicPublisher("Maj3259005");
-		TopicPublisher s1 = new TopicPublisher("maj3168200");
-		TopicPublisher s2 = new TopicPublisher("maj3168201");
-		TopicPublisher s3 = new TopicPublisher("maj3168202");
-		while (true) {
-			p.sendMessage("UPDATE");
-			s.sendMessage("UPDATE");
-			Thread.sleep(1000);
-			p1.sendMessage("UPDATE");
-			s.sendMessage("UPDATE");
-			Thread.sleep(1000);
-			p2.sendMessage("UPDATE");
-			s.sendMessage("UPDATE");
-			Thread.sleep(1000);
-			p3.sendMessage("UPDATE");
-			s.sendMessage("UPDATE");
-			Thread.sleep(1000);
-		}
+		l.openConnection();
+		
+		Dispatcher three = new Dispatcher(false, true);
+		Dispatcher sbo = new Dispatcher(true, false);
+		
+		
+		(new Thread(sbo)).start();
+		(new Thread(three)).start();
 	}
 
-	public void run() throws JMSException {
+	public void openConnection() throws JMSException {
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		factory.setUseAsyncSend(true);
 		connection = factory.createConnection();
@@ -103,8 +90,8 @@ public class TopicListener implements MessageListener {
 				ObjectMessage mes = (ObjectMessage) message;
 				HashMap<String, Odd> odds = (HashMap<String, Odd>) mes
 						.getObject();
-				logOddtable(odds, message.getStringProperty("username"));
-				// this.processOdd(odds, message.getStringProperty("username"));
+				// logOddtable(odds, message.getStringProperty("username"));
+				this.processOdd(odds, message.getStringProperty("username"));
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
 				logger.info(mes.getText());
