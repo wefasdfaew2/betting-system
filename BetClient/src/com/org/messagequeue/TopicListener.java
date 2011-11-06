@@ -38,7 +38,6 @@ public class TopicListener implements MessageListener {
 	private String url = "tcp://localhost:61616?jms.useAsyncSend=true";
 	private OddEngine engine;
 	private String topicname;
-	
 
 	public TopicListener(String topicname) {
 		System.setProperty("filename", "listenner_log.log");
@@ -51,11 +50,10 @@ public class TopicListener implements MessageListener {
 	public static void main(String[] argv) throws Exception {
 		TopicListener l = new TopicListener("topictest.messages");
 		l.openConnection();
-		
+
 		Dispatcher three = new Dispatcher(false, true);
 		Dispatcher sbo = new Dispatcher(true, false);
-		
-		
+
 		(new Thread(sbo)).start();
 		(new Thread(three)).start();
 	}

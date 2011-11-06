@@ -6,8 +6,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -22,29 +20,20 @@ import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.UnexpectedPage;
 import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebWindow;
-import com.gargoylesoftware.htmlunit.WebWindowNotFoundException;
 import com.gargoylesoftware.htmlunit.html.FrameWindow;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTable;
 import com.org.captcha.CaptchaUtilities;
 import com.org.captcha.Site;
-import com.org.messagequeue.TopicListener;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
 import com.org.odd.OddElement;
@@ -56,7 +45,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 500;
+	// private int sleep_time = 500;
 	private OddUtilities util;
 	private OddSide side;
 	private HtmlPage page;
@@ -70,13 +59,31 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	HtmlTable table_nonlive = null;
 	HtmlElement refresh_live;
 	HtmlElement refresh_nonlive;
+	private boolean isPolling = false;
 
-	public static void main(String[] argv) throws JMSException,
-			FailingHttpStatusCodeException, MalformedURLException, IOException,
-			InterruptedException {
+	public static void main(String[] argv) {
 		OddSide side = OddSide.LIVE;
-		SbobetPlayer client = new SbobetPlayer(argv[0], argv[1], side, false);
-		client.homePage();
+		SbobetPlayer client;
+		try {
+			client = new SbobetPlayer(argv[0], argv[1], side, false);
+			client.homePage();
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FailingHttpStatusCodeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	public Logger getLogger() {
@@ -229,8 +236,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		// live odd
 
 		webClient.waitForBackgroundJavaScript(3000);
-
-		int i = 1;
+		//
+		// int i = 1;
 		refresh_live = odd_page.createElement("button");
 		refresh_live.setAttribute("onclick", "od_OnRefreshManually(0)");
 
@@ -240,7 +247,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		odd_page.appendChild(refresh_live);
 		odd_page.appendChild(refresh_nonlive);
 
-		// if not iscrawler then start listen to bet
+		// if not is crawler then start listen to bet
 		if (!this.isCrawler)
 			try {
 				this.startConnection();
@@ -253,6 +260,11 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	}
 
 	public void doPolling() throws IOException, JMSException {
+		// avoid overhead if is polling then return
+		if (isPolling)
+			return;
+		// set is polling to true so while polling do not polling any more
+		this.isPolling = true;
 		HashMap<String, OddElement> map_odds = new HashMap<String, OddElement>();
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			refresh_live.click();
@@ -290,6 +302,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			}
 		}
 		this.sendData(map_odds);
+		this.isPolling = false;
 	}
 
 	@Override
@@ -354,15 +367,17 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	public void placeBet(HtmlElement element) {
 		try {
 			HtmlElement odd_element = (HtmlElement) element.getFirstChild();
-			String xpath = odd_element.getCanonicalXPath();
+			// String xpath = odd_element.getCanonicalXPath();
 			// from the xpath find the div which contain the action that the
 			// span element missing
-			String[] xpath_element = xpath.split("/");
-			String div_xpath = "/" + xpath_element[0] + "/" + xpath_element[1]
-					+ "/" + xpath_element[2];
+			// String[] xpath_element = xpath.split("/");
+			// String div_xpath = "/" + xpath_element[0] + "/" +
+			// xpath_element[1]
+			// + "/" + xpath_element[2];
 			// logger.info(div_xpath);
-			HtmlElement div_element = this.odd_page.getFirstByXPath(div_xpath);
-			String div_javascript = div_element.getAttribute("onclick");
+			// HtmlElement div_element =
+			// this.odd_page.getFirstByXPath(div_xpath);
+			// String div_javascript = div_element.getAttribute("onclick");
 			odd_element.setAttribute("onclick", "od_OnClick(0, event)");
 
 			// if (this.side == OddSide.LIVE || this.side == OddSide.EARLY)
@@ -370,8 +385,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			// else if (this.side == OddSide.NON_LIVE)
 			// odd_element.setAttribute("onclick", "od_OnClick(1, event)");
 
-			String submit_odd = odd_element.asText();
-			logger.info(odd_element.asXml());
+			// String submit_odd = odd_element.asText();
+			// logger.info(odd_element.asXml());
 
 			odd_element.click();
 			Thread.sleep(100);
@@ -396,11 +411,12 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			} catch (Exception e) {
 				logger.info("ticket openned");
 			}
-			// after open ticket form then find the real odd
-			String bet_odd = ticket_div.getElementById("ticoddsVal").asText();
-
-			logger.info("submitted to bet :" + submit_odd);
-			logger.info("real odd to bet :" + bet_odd);
+			// // after open ticket form then find the real odd
+			// String bet_odd =
+			// ticket_div.getElementById("ticoddsVal").asText();
+			//
+			// logger.info("submitted to bet :" + submit_odd);
+			// logger.info("real odd to bet :" + bet_odd);
 			// fill the stake
 			HtmlElement stake_input = ticket_div.getElementById("stake");
 			stake_input.setAttribute("value", "10");
@@ -422,13 +438,13 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 	}
 
-	private boolean getEquals(String o1, String o2) {
-		try {
-			float a1 = Float.parseFloat(o1);
-			float a2 = Float.parseFloat(o2);
-			return a1 == a2;
-		} catch (NumberFormatException e) {
-			return false;
-		}
-	}
+	// private boolean getEquals(String o1, String o2) {
+	// try {
+	// float a1 = Float.parseFloat(o1);
+	// float a2 = Float.parseFloat(o2);
+	// return a1 == a2;
+	// } catch (NumberFormatException e) {
+	// return false;
+	// }
+	// }
 }

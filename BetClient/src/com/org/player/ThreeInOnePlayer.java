@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -24,18 +23,14 @@ import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.UnexpectedPage;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.FrameWindow;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -53,7 +48,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	private final Logger logger;
 	private String username;
 	private String pass;
-	private int sleep_time = 3000;
+//	private int sleep_time = 3000;
 	private TopicPublisher p;
 	private OddUtilities util;
 	private OddSide side;
@@ -67,6 +62,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	HtmlElement refresh_live;
 	HtmlElement refresh_nonlive;
 	HtmlElement refresh_early;
+	private boolean isPolling = false;
 
 	public static void main(String[] argv) throws JMSException,
 			FailingHttpStatusCodeException, MalformedURLException, IOException,
@@ -124,16 +120,16 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
 
 		// now send only the odd which is updated
-		// iter through old if not in new then set null
+		// iterate through old if not in new then set null
 		for (Entry<String, OddElement> e : this.current_map_odds.entrySet()) {
 			// if not in new
 			if (!map_odds.containsKey(e.getKey())) {
 				send_odds.put(e.getKey(), null);
 			}
 		}
-		// iter through new and see if update then send
+		// iterate through new and see if update then send
 		for (Entry<String, OddElement> e : map_odds.entrySet()) {
-			// compre if update
+			// compare if update
 			if (this.current_map_odds.containsKey(e.getKey())) {
 				Odd new_odd = e.getValue().getOdd();
 				Odd old_odd = this.current_map_odds.get(e.getKey()).getOdd();
@@ -159,9 +155,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		int i = 1;
-		int j = 1;
-
 		webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
@@ -256,7 +249,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		table = (HtmlTable) odd_page.getElementById("tblData5");
 		table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
 
-		i = 1;
 		// sendData(table, table_nonlive);
 		// establish connection
 		try {
@@ -288,30 +280,32 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 						"var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		odd_page.appendChild(refresh_early);
 
-		logger.info("complete login...");
 		// webClient.closeAllWindows();
 	}
 
 	public void doPolling() throws IOException, InterruptedException,
 			JMSException {
-		long delay = 0;
+		if (this.isPolling)
+			return;
+		this.isPolling = true;
+		// long delay = 0;
 		HashMap<String, OddElement> map_odds = new HashMap<String, OddElement>();
 		// Click update live and non-live
 		// live
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
-			long startTime = System.currentTimeMillis();
+			// long startTime = System.currentTimeMillis();
 			odd_page = refresh_live.click();
 			// Thread.sleep(sleep_time);
 			table = (HtmlTable) odd_page.getElementById("tblData5");
 			map_odds.putAll(this.util.getOddsFromThreeInOne(table));
-			long endTime = System.currentTimeMillis();
-			delay = endTime - startTime;
-			String d = "" + delay;
+			// long endTime = System.currentTimeMillis();
+			// delay = endTime - startTime;
+			// String d = "" + delay;
 
 		}
 		if (this.side == OddSide.NON_LIVE || this.side == OddSide.EARLY
 				|| this.side == OddSide.TODAY) {
-			long startTime = System.currentTimeMillis();
+			// long startTime = System.currentTimeMillis();
 			// non -live
 			if (this.side == OddSide.NON_LIVE)
 				odd_page = refresh_nonlive.click();
@@ -320,25 +314,26 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			// Thread.sleep(sleep_time);
 			table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
 			map_odds.putAll(this.util.getOddsFromThreeInOne(table_nonlive));
-			long endTime = System.currentTimeMillis();
-			delay = endTime - startTime;
-			String d = "" + delay;
+			// long endTime = System.currentTimeMillis();
+			// delay = endTime - startTime;
+			// String d = "" + delay;
 			// p.sendMessage(d);
 		}
 		this.sendData(map_odds);
+		this.isPolling = false;
 	}
 
-	private void sendData(HtmlTable table, HtmlTable table_nonlive)
-			throws JMSException {
-		if (table_nonlive != null) {
-			// logger.info(table_nonlive.asText());
-			p.sendMessage(table_nonlive.asText());
-		}
-		if (table != null) {
-			// logger.info(table.asText());
-			p.sendMessage(table.asText());
-		}
-	}
+	// private void sendData(HtmlTable table, HtmlTable table_nonlive)
+	// throws JMSException {
+	// if (table_nonlive != null) {
+	// // logger.info(table_nonlive.asText());
+	// p.sendMessage(table_nonlive.asText());
+	// }
+	// if (table != null) {
+	// // logger.info(table.asText());
+	// p.sendMessage(table.asText());
+	// }
+	// }
 
 	/**
 	 * Get stack trace as string
@@ -389,7 +384,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				} else {
 					logger.info("odd disapear...");
 				}
-//				logger.info(odd);
+				// logger.info(odd);
 
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
@@ -410,16 +405,17 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void placeBet(HtmlElement element) {
 		try {
 			HtmlElement odd_element = (HtmlElement) element.getFirstChild();
-			String submit_odd = odd_element.asText();
-			logger.info(odd_element.asXml());
+			// String submit_odd = odd_element.asText();
+			// logger.info(odd_element.asXml());
 
 			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
 					"fraPanel").getEnclosedPage();
 
 			odd_element.click();
-			Thread.sleep(300);
+			Thread.sleep(100);
 
-			String bet_odd = ticket_page.getElementById("lb_bet_odds").asText();
+			// String bet_odd =
+			// ticket_page.getElementById("lb_bet_odds").asText();
 			// logger.info("match : "
 			// + ticket_page.getElementById("pn_title").asText());
 			// logger.info("team to bet :"
@@ -445,13 +441,13 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		}
 	}
 
-	private boolean getEquals(String o1, String o2) {
-		try {
-			float a1 = Float.parseFloat(o1);
-			float a2 = Float.parseFloat(o2);
-			return a1 == a2;
-		} catch (NumberFormatException e) {
-			return false;
-		}
-	}
+	// private boolean getEquals(String o1, String o2) {
+	// try {
+	// float a1 = Float.parseFloat(o1);
+	// float a2 = Float.parseFloat(o2);
+	// return a1 == a2;
+	// } catch (NumberFormatException e) {
+	// return false;
+	// }
+	// }
 }
