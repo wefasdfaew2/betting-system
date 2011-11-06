@@ -9,14 +9,15 @@ import javax.jms.JMSException;
 
 import org.apache.log4j.Logger;
 
+import com.org.messagequeue.OddPublisher;
 import com.org.messagequeue.TopicPublisher;
 
 public class OddEngine {
 	private Logger logger;
 	private HashMap<String, HashMap<String, Odd>> all_odd;
 	private HashMap<String, Long> time_stamp;
-	TopicPublisher sbo;
-	TopicPublisher three_in_one;
+	OddPublisher sbo;
+	OddPublisher three_in_one;
 	private int played = 1;
 
 	public int isPlayed() {
@@ -32,8 +33,8 @@ public class OddEngine {
 		this.all_odd = new HashMap<String, HashMap<String, Odd>>();
 		this.time_stamp = new HashMap<String, Long>();
 		try {
-			this.sbo = new TopicPublisher("Maj3259005");
-			this.three_in_one = new TopicPublisher("lvmml7006002");
+			this.sbo = new OddPublisher("Maj3259005");
+			this.three_in_one = new OddPublisher("lvmml7006002");
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -111,20 +112,19 @@ public class OddEngine {
 
 	public void placeBet(Odd odd, String client, TeamType t)
 			throws JMSException {
-		if (t == TeamType.HOME) {
-			if (client.equals("3in")) {
-				this.three_in_one.sendOddMessage(odd, TeamType.HOME);
-			} else if (client.equals("sbobet")) {
-				this.sbo.sendOddMessage(odd, TeamType.HOME);
-			}
+
+		if (client.equals("3in")) {
+			// this.three_in_one.sendOddMessage(odd, TeamType.HOME);
+			this.three_in_one.setOdd(odd);
+			this.three_in_one.setType(t);
+			(new Thread(this.three_in_one)).start();
+		} else if (client.equals("sbobet")) {
+			// this.sbo.sendOddMessage(odd, TeamType.HOME);
+			this.sbo.setOdd(odd);
+			this.sbo.setType(t);
+			(new Thread(this.sbo)).start();
 		}
-		if (t == TeamType.AWAY) {
-			if (client.equals("3in")) {
-				this.three_in_one.sendOddMessage(odd, TeamType.AWAY);
-			} else if (client.equals("sbobet")) {
-				this.sbo.sendOddMessage(odd, TeamType.AWAY);
-			}
-		}
+
 	}
 
 	public void getGoodOdd(Odd odd1, Odd odd2, String client1, String client2)
