@@ -1,12 +1,10 @@
 package com.org.messagequeue;
 
-import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
-import javax.jms.MapMessage;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
@@ -14,16 +12,12 @@ import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.org.odd.Odd;
 import com.org.odd.OddEngine;
-import com.org.odd.OddType;
 import com.org.player.StackTraceUtil;
 
 /**

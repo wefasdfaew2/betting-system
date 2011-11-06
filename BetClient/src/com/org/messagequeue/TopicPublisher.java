@@ -1,18 +1,13 @@
 package com.org.messagequeue;
 
 import java.util.HashMap;
-import java.util.List;
-
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
-import javax.jms.MapMessage;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.Topic;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.junit.Test;
 
