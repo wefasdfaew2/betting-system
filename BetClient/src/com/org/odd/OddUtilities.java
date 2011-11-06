@@ -41,8 +41,8 @@ public class OddUtilities {
 		return result;
 	}
 
-	public HashMap<Odd, HtmlElement[]> getOddsFromSobet(HtmlTable odd_table) {
-		HashMap<Odd, HtmlElement[]> result = new HashMap<Odd, HtmlElement[]>();
+	public HashMap<String, OddElement> getOddsFromSobet(HtmlTable odd_table) {
+		HashMap<String, OddElement> result = new HashMap<String, OddElement>();
 		for (HtmlTableBody body : odd_table.getBodies()) {
 			HtmlTableRow row = null;
 			HtmlTableCell first_cell = null;
@@ -94,12 +94,10 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(6).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.HDP_FULLTIME);
-					odd.setOdd_home_xpath(row.getCell(5).getCanonicalXPath());
-					odd.setOdd_away_xpath(row.getCell(6).getCanonicalXPath());
-					HtmlElement[] e = new HtmlElement[2];
-					e[0] = row.getCell(5);
-					e[1] = row.getCell(6);
-					result.put(odd, e);
+
+					OddElement new_element = new OddElement(odd,
+							row.getCell(5), row.getCell(6));
+					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -112,12 +110,10 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(9).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.OU_FULLTIME);
-					odd.setOdd_home_xpath(row.getCell(8).getCanonicalXPath());
-					odd.setOdd_away_xpath(row.getCell(9).getCanonicalXPath());
-					HtmlElement[] e = new HtmlElement[2];
-					e[0] = row.getCell(8);
-					e[1] = row.getCell(9);
-					result.put(odd, e);
+
+					OddElement new_element = new OddElement(odd,
+							row.getCell(8), row.getCell(9));
+					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -132,12 +128,10 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(12).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.HDP_HALFTIME);
-					odd.setOdd_home_xpath(row.getCell(11).getCanonicalXPath());
-					odd.setOdd_away_xpath(row.getCell(12).getCanonicalXPath());
-					HtmlElement[] e = new HtmlElement[2];
-					e[0] = row.getCell(11);
-					e[1] = row.getCell(12);
-					result.put(odd, e);
+
+					OddElement new_element = new OddElement(odd,
+							row.getCell(11), row.getCell(12));
+					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -150,12 +144,10 @@ public class OddUtilities {
 					float odd2 = Float.parseFloat(row.getCell(15).asText());
 					Odd odd = new Odd(team1, team2, handicap, odd1, odd2,
 							OddType.OU_HALFTIME);
-					odd.setOdd_home_xpath(row.getCell(14).getCanonicalXPath());
-					odd.setOdd_away_xpath(row.getCell(15).getCanonicalXPath());
-					HtmlElement[] e = new HtmlElement[2];
-					e[0] = row.getCell(14);
-					e[1] = row.getCell(15);
-					result.put(odd, e);
+
+					OddElement new_element = new OddElement(odd,
+							row.getCell(14), row.getCell(15));
+					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -165,8 +157,8 @@ public class OddUtilities {
 		return result;
 	}
 
-	public HashMap<Odd, HtmlElement[]> getOddsFromThreeInOne(HtmlTable odd_table) {
-		HashMap<Odd, HtmlElement[]> result = new HashMap<Odd, HtmlElement[]>();
+	public HashMap<String, OddElement> getOddsFromThreeInOne(HtmlTable odd_table) {
+		HashMap<String, OddElement> result = new HashMap<String, OddElement>();
 		HtmlTableBody body;
 		try {
 			body = odd_table.getBodies().get(0);
@@ -231,14 +223,10 @@ public class OddUtilities {
 							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.HDP_FULLTIME);
-							odd.setOdd_home_xpath(row.getCell(3)
-									.getCanonicalXPath());
-							odd.setOdd_away_xpath(row.getCell(4)
-									.getCanonicalXPath());
-							HtmlElement[] e = new HtmlElement[2];
-							e[0] = row.getCell(3);
-							e[1] = row.getCell(4);
-							result.put(odd, e);
+
+							OddElement new_element = new OddElement(odd,
+									row.getCell(3), row.getCell(4));
+							result.put(odd.getId(), new_element);
 						}
 					}
 				} catch (Exception e) {
@@ -255,14 +243,10 @@ public class OddUtilities {
 							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.OU_FULLTIME);
-							odd.setOdd_home_xpath(row.getCell(6)
-									.getCanonicalXPath());
-							odd.setOdd_away_xpath(row.getCell(7)
-									.getCanonicalXPath());
-							HtmlElement[] e = new HtmlElement[2];
-							e[0] = row.getCell(6);
-							e[1] = row.getCell(7);
-							result.put(odd, e);
+
+							OddElement new_element = new OddElement(odd,
+									row.getCell(6), row.getCell(7));
+							result.put(odd.getId(), new_element);
 						}
 					}
 				} catch (Exception e) {
@@ -281,14 +265,10 @@ public class OddUtilities {
 							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.HDP_HALFTIME);
-							odd.setOdd_home_xpath(row.getCell(9)
-									.getCanonicalXPath());
-							odd.setOdd_away_xpath(row.getCell(10)
-									.getCanonicalXPath());
-							HtmlElement[] e = new HtmlElement[2];
-							e[0] = row.getCell(9);
-							e[1] = row.getCell(10);
-							result.put(odd, e);
+
+							OddElement new_element = new OddElement(odd,
+									row.getCell(9), row.getCell(10));
+							result.put(odd.getId(), new_element);
 						}
 					}
 				} catch (Exception e) {
@@ -305,14 +285,10 @@ public class OddUtilities {
 							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.OU_HALFTIME);
-							odd.setOdd_home_xpath(row.getCell(12)
-									.getCanonicalXPath());
-							odd.setOdd_away_xpath(row.getCell(13)
-									.getCanonicalXPath());
-							HtmlElement[] e = new HtmlElement[2];
-							e[0] = row.getCell(12);
-							e[1] = row.getCell(13);
-							result.put(odd, e);
+
+							OddElement new_element = new OddElement(odd,
+									row.getCell(12), row.getCell(13));
+							result.put(odd.getId(), new_element);
 						}
 					}
 				} catch (Exception e) {

@@ -22,6 +22,10 @@ public class Odd implements Serializable {
 	private String odd_home_xpath;
 	private String odd_away_xpath;
 
+	public static boolean compareValue(Odd o1, Odd o2) {
+		return o1.odd_home == o2.odd_home && o1.odd_away == o2.odd_away;
+	}
+
 	public String getOdd_home_xpath() {
 		return odd_home_xpath;
 	}

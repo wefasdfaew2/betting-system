@@ -103,8 +103,8 @@ public class TopicListener implements MessageListener {
 				ObjectMessage mes = (ObjectMessage) message;
 				HashMap<String, Odd> odds = (HashMap<String, Odd>) mes
 						.getObject();
-				// logOddtable(odds, message.getStringProperty("username"));
-				this.processOdd(odds, message.getStringProperty("username"));
+				logOddtable(odds, message.getStringProperty("username"));
+				// this.processOdd(odds, message.getStringProperty("username"));
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
 				logger.info(mes.getText());

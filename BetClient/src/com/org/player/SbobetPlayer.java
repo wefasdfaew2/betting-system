@@ -10,6 +10,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 import javax.jms.Connection;
@@ -46,6 +47,7 @@ import com.org.captcha.Site;
 import com.org.messagequeue.TopicListener;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
+import com.org.odd.OddElement;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 import com.org.webbrowser.ThreeInOneMemberClient;
@@ -64,7 +66,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	private HtmlPage ticket_div;
 	private WebClient webClient;
 	private boolean isCrawler;
-	private HashMap<Odd, HtmlElement[]> map_odds;
+	private HashMap<String, OddElement> current_map_odds;
 	HtmlTable table = null;
 	HtmlTable table_nonlive = null;
 	HtmlElement refresh_live;
@@ -107,7 +109,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		this.util = new OddUtilities();
 		this.side = side;
 		this.isCrawler = isCrawler;
-		this.map_odds = new HashMap<Odd, HtmlElement[]>();
+		this.current_map_odds = new HashMap<String, OddElement>();
 	}
 
 	public SbobetPlayer(String username, String pass, OddSide side,
@@ -122,15 +124,37 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		this.util = new OddUtilities();
 		this.side = side;
 		this.isCrawler = isCrawler;
-		this.map_odds = new HashMap<Odd, HtmlElement[]>();
+		this.current_map_odds = new HashMap<String, OddElement>();
 	}
 
-	private void sendData() throws JMSException {
-		HashMap<String, Odd> odds = new HashMap<String, Odd>();
-		for (Odd o : this.map_odds.keySet()) {
-			odds.put(o.getId(), o);
+	private void sendData(HashMap<String, OddElement> map_odds)
+			throws JMSException {
+		HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
+
+		// now send only the odd which is updated
+		// iter through old if not in new then set null
+		for (Entry<String, OddElement> e : this.current_map_odds.entrySet()) {
+			// if not in new
+			if (!map_odds.containsKey(e.getKey())) {
+				send_odds.put(e.getKey(), null);
+			}
 		}
-		p.sendMapMessage(odds, "sbobet");
+		// iter through new and see if update then send
+		for (Entry<String, OddElement> e : map_odds.entrySet()) {
+			// compre if update
+			if (this.current_map_odds.containsKey(e.getKey())) {
+				Odd new_odd = e.getValue().getOdd();
+				Odd old_odd = this.current_map_odds.get(e.getKey()).getOdd();
+				if (!Odd.compareValue(new_odd, old_odd)) {
+					send_odds.put(new_odd.getId(), new_odd);
+				}
+
+			}
+		}
+		// update current map to update map
+		this.current_map_odds.clear();
+		this.current_map_odds.putAll(map_odds);
+		p.sendMapMessage(send_odds, "sbobet");
 	}
 
 	public void homePage() throws FailingHttpStatusCodeException,
@@ -230,7 +254,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	}
 
 	public void doPolling() throws IOException, JMSException {
-		this.map_odds = new HashMap<Odd, HtmlElement[]>();
+		HashMap<String, OddElement> map_odds = new HashMap<String, OddElement>();
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			refresh_live.click();
 
@@ -243,7 +267,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				table = (HtmlTable) table.getBodies().get(0).getRows().get(0)
 						.getCell(0).getFirstChild();
 
-				this.map_odds.putAll(this.util.getOddsFromSobet(table));
+				map_odds.putAll(this.util.getOddsFromSobet(table));
 
 			}
 		}
@@ -263,10 +287,10 @@ public class SbobetPlayer extends Thread implements MessageListener {
 						.getFirstChild();
 				table_nonlive = (HtmlTable) table_nonlive.getBodies().get(0)
 						.getRows().get(0).getCell(0).getFirstChild();
-				this.map_odds.putAll(this.util.getOddsFromSobet(table_nonlive));
+				map_odds.putAll(this.util.getOddsFromSobet(table_nonlive));
 			}
 		}
-		this.sendData();
+		this.sendData(map_odds);
 	}
 
 	@Override
@@ -295,16 +319,19 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				ObjectMessage mes = (ObjectMessage) message;
 				Odd odd = (Odd) mes.getObject();
 				boolean is_home = mes.getBooleanProperty("home");
-				HashMap<Odd, HtmlElement[]> tmp_map = new HashMap<Odd, HtmlElement[]>();
+				// do update again to up to newest odd, if crawl exactly do not
+				// need to do this
+
+				HashMap<String, OddElement> tmp_map = new HashMap<String, OddElement>();
 				if (table_nonlive != null)
 					tmp_map.putAll(this.util.getOddsFromSobet(table_nonlive));
 				if (table != null)
 					tmp_map.putAll(this.util.getOddsFromSobet(table));
-				if (tmp_map.containsKey(odd)) {
+				if (tmp_map.containsKey(odd.getId())) {
 					if (is_home)
-						this.placeBet(tmp_map.get(odd)[0]);
+						this.placeBet(tmp_map.get(odd.getId()).getHome());
 					else
-						this.placeBet(tmp_map.get(odd)[1]);
+						this.placeBet(tmp_map.get(odd.getId()).getAway());
 				} else {
 					logger.info("odd disapear...");
 				}

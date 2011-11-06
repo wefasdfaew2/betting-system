@@ -12,6 +12,8 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+
 import javax.imageio.ImageIO;
 import javax.jms.Connection;
 import javax.jms.JMSException;
@@ -43,6 +45,7 @@ import com.org.captcha.CaptchaUtilities;
 import com.org.captcha.Site;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
+import com.org.odd.OddElement;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 import com.org.webbrowser.ThreeInOneMemberClient;
@@ -59,7 +62,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	private WebClient webClient;
 	private HtmlPage page;
 	private HtmlPage ticket_page;
-	private HashMap<Odd, HtmlElement[]> map_odds;
+	private HashMap<String, OddElement> current_map_odds;
 	HtmlTable table = null;
 	HtmlTable table_nonlive = null;
 	HtmlElement refresh_live;
@@ -101,7 +104,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		logger = Logger.getLogger(ThreeInOnePlayer.class);
 		this.util = new OddUtilities();
 		this.side = side;
-		this.map_odds = new HashMap<Odd, HtmlElement[]>();
+		this.current_map_odds = new HashMap<String, OddElement>();
 	}
 
 	public ThreeInOnePlayer(String acc, OddSide side) throws JMSException {
@@ -114,15 +117,37 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		logger = Logger.getLogger(ThreeInOnePlayer.class);
 		this.util = new OddUtilities();
 		this.side = side;
-		this.map_odds = new HashMap<Odd, HtmlElement[]>();
+		this.current_map_odds = new HashMap<String, OddElement>();
 	}
 
-	private void sendData() throws JMSException {
-		HashMap<String, Odd> odds = new HashMap<String, Odd>();
-		for (Odd o : this.map_odds.keySet()) {
-			odds.put(o.getId(), o);
+	private void sendData(HashMap<String, OddElement> map_odds)
+			throws JMSException {
+		HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
+
+		// now send only the odd which is updated
+		// iter through old if not in new then set null
+		for (Entry<String, OddElement> e : this.current_map_odds.entrySet()) {
+			// if not in new
+			if (!map_odds.containsKey(e.getKey())) {
+				send_odds.put(e.getKey(), null);
+			}
 		}
-		p.sendMapMessage(odds, "3in");
+		// iter through new and see if update then send
+		for (Entry<String, OddElement> e : map_odds.entrySet()) {
+			// compre if update
+			if (this.current_map_odds.containsKey(e.getKey())) {
+				Odd new_odd = e.getValue().getOdd();
+				Odd old_odd = this.current_map_odds.get(e.getKey()).getOdd();
+				if (!Odd.compareValue(new_odd, old_odd)) {
+					send_odds.put(new_odd.getId(), new_odd);
+				}
+
+			}
+		}
+		// update current map to update map
+		this.current_map_odds.clear();
+		this.current_map_odds.putAll(map_odds);
+		p.sendMapMessage(send_odds, "3in");
 	}
 
 	public void witeStringtoFile(String content, String file)
@@ -221,9 +246,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 		// tblData5
 		// Process get table and display
-		ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
-		"fraPanel").getEnclosedPage();
-		
+		ticket_page = (HtmlPage) this.webClient.getWebWindowByName("fraPanel")
+				.getEnclosedPage();
+
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
 
@@ -271,7 +296,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void doPolling() throws IOException, InterruptedException,
 			JMSException {
 		long delay = 0;
-		this.map_odds = new HashMap<Odd, HtmlElement[]>();
+		HashMap<String, OddElement> map_odds = new HashMap<String, OddElement>();
 		// Click update live and non-live
 		// live
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
@@ -279,7 +304,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			odd_page = refresh_live.click();
 			// Thread.sleep(sleep_time);
 			table = (HtmlTable) odd_page.getElementById("tblData5");
-			this.map_odds.putAll(this.util.getOddsFromThreeInOne(table));
+			map_odds.putAll(this.util.getOddsFromThreeInOne(table));
 			long endTime = System.currentTimeMillis();
 			delay = endTime - startTime;
 			String d = "" + delay;
@@ -295,14 +320,13 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				odd_page = refresh_early.click();
 			// Thread.sleep(sleep_time);
 			table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
-			this.map_odds
-					.putAll(this.util.getOddsFromThreeInOne(table_nonlive));
+			map_odds.putAll(this.util.getOddsFromThreeInOne(table_nonlive));
 			long endTime = System.currentTimeMillis();
 			delay = endTime - startTime;
 			String d = "" + delay;
 			// p.sendMessage(d);
 		}
-		this.sendData();
+		this.sendData(map_odds);
 	}
 
 	private void sendData(HtmlTable table, HtmlTable table_nonlive)
@@ -348,7 +372,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				ObjectMessage mes = (ObjectMessage) message;
 				Odd odd = (Odd) mes.getObject();
 				boolean is_home = mes.getBooleanProperty("home");
-				HashMap<Odd, HtmlElement[]> tmp_map = new HashMap<Odd, HtmlElement[]>();
+				// do update again to up to newest odd, if crawl exactly do not
+				// need to do this
+				HashMap<String, OddElement> tmp_map = new HashMap<String, OddElement>();
 				if (table_nonlive != null)
 					tmp_map.putAll(this.util
 							.getOddsFromThreeInOne(table_nonlive));
@@ -357,9 +383,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 				if (tmp_map.containsKey(odd)) {
 					if (is_home)
-						this.placeBet(tmp_map.get(odd)[0]);
+						this.placeBet(tmp_map.get(odd.getId()).getHome());
 					else
-						this.placeBet(tmp_map.get(odd)[1]);
+						this.placeBet(tmp_map.get(odd.getId()).getAway());
 				} else {
 					logger.info("odd disapear...");
 				}
