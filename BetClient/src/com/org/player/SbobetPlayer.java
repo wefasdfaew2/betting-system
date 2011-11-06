@@ -60,6 +60,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	HtmlElement refresh_live;
 	HtmlElement refresh_nonlive;
 	private boolean isPolling = false;
+	private HtmlElement stop_button;
 
 	public static void main(String[] argv) {
 		OddSide side = OddSide.LIVE;
@@ -166,7 +167,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
+		webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
@@ -246,6 +247,10 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 		odd_page.appendChild(refresh_live);
 		odd_page.appendChild(refresh_nonlive);
+		
+		stop_button = odd_page.createElement("button");
+		stop_button.setAttribute("onclick", "window.stop()");
+		odd_page.appendChild(stop_button);
 
 		// if not is crawler then start listen to bet
 		if (!this.isCrawler)
@@ -301,7 +306,12 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				map_odds.putAll(this.util.getOddsFromSobet(table_nonlive));
 			}
 		}
+				
+		// trying to stop all java script :(
+		
 		this.sendData(map_odds);
+		stop_button.click();
+		
 		this.isPolling = false;
 	}
 
@@ -340,6 +350,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				if (table != null)
 					tmp_map.putAll(this.util.getOddsFromSobet(table));
 				if (tmp_map.containsKey(odd.getId())) {
+					logger.info(odd);
 					if (is_home)
 						this.placeBet(tmp_map.get(odd.getId()).getHome());
 					else
@@ -347,7 +358,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				} else {
 					logger.info("odd disapear...");
 				}
-				logger.info(odd);
+				
 
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;

@@ -48,7 +48,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	private final Logger logger;
 	private String username;
 	private String pass;
-//	private int sleep_time = 3000;
+	// private int sleep_time = 3000;
 	private TopicPublisher p;
 	private OddUtilities util;
 	private OddSide side;
@@ -63,6 +63,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	HtmlElement refresh_nonlive;
 	HtmlElement refresh_early;
 	private boolean isPolling = false;
+	private HtmlElement stop_button;
+	
 
 	public static void main(String[] argv) throws JMSException,
 			FailingHttpStatusCodeException, MalformedURLException, IOException,
@@ -249,14 +251,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		table = (HtmlTable) odd_page.getElementById("tblData5");
 		table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
 
-		// sendData(table, table_nonlive);
-		// establish connection
-		try {
-			this.startConnection();
-		} catch (JMSException e) {
-			logger.info("error establish JMS connection...exiting..");
-			return;
-		}
+		// sendData(table, table_nonlive);		
 
 		// virtual button to click refresh, call javascript skip check time
 		refresh_live = odd_page.createElement("button");
@@ -279,7 +274,18 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 						"onclick",
 						"var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		odd_page.appendChild(refresh_early);
-
+		
+		stop_button = odd_page.createElement("button");
+		stop_button.setAttribute("onclick", "window.stop()");
+		odd_page.appendChild(stop_button);
+		
+		// establish connection
+		try {
+			this.startConnection();
+		} catch (JMSException e) {
+			logger.info("error establish JMS connection...exiting..");
+			return;
+		}
 		// webClient.closeAllWindows();
 	}
 
@@ -320,6 +326,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			// p.sendMessage(d);
 		}
 		this.sendData(map_odds);
+		stop_button.click();
 		this.isPolling = false;
 	}
 

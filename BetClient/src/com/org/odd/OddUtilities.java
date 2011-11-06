@@ -100,7 +100,8 @@ public class OddUtilities {
 					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				// TODO: handle exception
+				// e.printStackTrace();
 			}
 			try {
 				handicap = convertHandicap(row.getCell(7).asText().trim());
@@ -116,7 +117,8 @@ public class OddUtilities {
 					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				// TODO: handle exception
+				// e.printStackTrace();
 			}
 			try {
 				handicap = row.getCell(10).asText().trim();
@@ -134,7 +136,8 @@ public class OddUtilities {
 					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				// TODO: handle exception
+				// e.printStackTrace();
 			}
 			try {
 				handicap = row.getCell(13).asText().trim();
@@ -150,7 +153,8 @@ public class OddUtilities {
 					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				// TODO: handle exception
+				// e.printStackTrace();
 			}
 		}
 
@@ -163,6 +167,7 @@ public class OddUtilities {
 		try {
 			body = odd_table.getBodies().get(0);
 		} catch (Exception e) {
+			// TODO: handle exception
 			return result;
 		}
 		for (HtmlTableRow row : body.getRows()) {
@@ -172,7 +177,8 @@ public class OddUtilities {
 			try {
 				cell = row.getCell(0);
 			} catch (Exception e) {
-				e.printStackTrace();
+				// TODO: handle exception
+//				e.printStackTrace();
 				continue;
 			}
 			if (cell.getClass()
@@ -202,7 +208,8 @@ public class OddUtilities {
 						}
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					// TODO: handle exception
+//					e.printStackTrace();
 					continue;
 				}
 				team1 = team1.trim().toUpperCase();
@@ -230,7 +237,8 @@ public class OddUtilities {
 						}
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					// TODO: handle exception
+//					e.printStackTrace();
 				}
 				try {
 					handicap = convertHandicap(row.getCell(5).asText());
@@ -250,7 +258,8 @@ public class OddUtilities {
 						}
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					// TODO: handle exception
+//					e.printStackTrace();
 				}
 				try {
 					handicap = convertHandicap(row.getCell(8).asText());
@@ -272,7 +281,8 @@ public class OddUtilities {
 						}
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					// TODO: handle exception
+//					e.printStackTrace();
 				}
 				try {
 					handicap = convertHandicap(row.getCell(11).asText());
@@ -292,7 +302,8 @@ public class OddUtilities {
 						}
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					// TODO: handle exception
+//					e.printStackTrace();
 				}
 
 			}
