@@ -41,6 +41,7 @@ import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class SbobetPlayer extends Thread implements MessageListener {
+	String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
 	private TopicPublisher p;
 	private final Logger logger;
 	private String username;
@@ -92,7 +93,6 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	}
 
 	public void startConnection() throws JMSException {
-		String url = "tcp://localhost:61616?jms.useAsyncSend=true";
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		Connection connection = factory.createConnection();
 		Session session = connection.createSession(false,
@@ -347,13 +347,15 @@ public class SbobetPlayer extends Thread implements MessageListener {
 					this.doPolling();
 				} catch (Exception e) {
 					// TODO: handle exception
-				}				
+				}
 				if (this.current_map_odds.containsKey(odd.getId())) {
 					logger.info(odd);
 					if (is_home)
-						this.placeBet(this.current_map_odds.get(odd.getId()).getHome());
+						this.placeBet(this.current_map_odds.get(odd.getId())
+								.getHome());
 					else
-						this.placeBet(this.current_map_odds.get(odd.getId()).getAway());
+						this.placeBet(this.current_map_odds.get(odd.getId())
+								.getAway());
 				} else {
 					logger.info("odd disapear...");
 				}

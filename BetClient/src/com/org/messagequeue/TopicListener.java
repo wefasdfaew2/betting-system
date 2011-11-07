@@ -29,7 +29,7 @@ public class TopicListener implements MessageListener {
 	private Connection connection;
 	private Session session;
 	private Queue topic;
-	private String url = "tcp://localhost:61616?jms.useAsyncSend=true";
+	private String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
 	private OddEngine engine;
 	private String topicname;
 

@@ -178,7 +178,7 @@ public class OddUtilities {
 				cell = row.getCell(0);
 			} catch (Exception e) {
 				// TODO: handle exception
-//				e.printStackTrace();
+				// e.printStackTrace();
 				continue;
 			}
 			if (cell.getClass()
@@ -209,7 +209,7 @@ public class OddUtilities {
 					}
 				} catch (Exception e) {
 					// TODO: handle exception
-//					e.printStackTrace();
+					// e.printStackTrace();
 					continue;
 				}
 				team1 = team1.trim().toUpperCase();
@@ -230,7 +230,10 @@ public class OddUtilities {
 							float odd2 = Float.parseFloat(odd_string2);
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.HDP_FULLTIME);
-
+							odd.setOdd_home_xpath(((HtmlElement) row.getCell(3)
+									.getFirstChild()).getAttribute("href"));
+							odd.setOdd_away_xpath(((HtmlElement) row.getCell(4)
+									.getFirstChild()).getAttribute("href"));
 							OddElement new_element = new OddElement(odd,
 									row.getCell(3), row.getCell(4));
 							result.put(odd.getId(), new_element);
@@ -238,7 +241,7 @@ public class OddUtilities {
 					}
 				} catch (Exception e) {
 					// TODO: handle exception
-//					e.printStackTrace();
+					// e.printStackTrace();
 				}
 				try {
 					handicap = convertHandicap(row.getCell(5).asText());
@@ -252,6 +255,11 @@ public class OddUtilities {
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.OU_FULLTIME);
 
+							odd.setOdd_home_xpath(((HtmlElement) row.getCell(6)
+									.getFirstChild()).getAttribute("href"));
+							odd.setOdd_away_xpath(((HtmlElement) row.getCell(7)
+									.getFirstChild()).getAttribute("href"));
+							
 							OddElement new_element = new OddElement(odd,
 									row.getCell(6), row.getCell(7));
 							result.put(odd.getId(), new_element);
@@ -259,7 +267,7 @@ public class OddUtilities {
 					}
 				} catch (Exception e) {
 					// TODO: handle exception
-//					e.printStackTrace();
+					// e.printStackTrace();
 				}
 				try {
 					handicap = convertHandicap(row.getCell(8).asText());
@@ -275,6 +283,11 @@ public class OddUtilities {
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.HDP_HALFTIME);
 
+							odd.setOdd_home_xpath(((HtmlElement) row.getCell(9)
+									.getFirstChild()).getAttribute("href"));
+							odd.setOdd_away_xpath(((HtmlElement) row.getCell(10)
+									.getFirstChild()).getAttribute("href"));
+							
 							OddElement new_element = new OddElement(odd,
 									row.getCell(9), row.getCell(10));
 							result.put(odd.getId(), new_element);
@@ -282,7 +295,7 @@ public class OddUtilities {
 					}
 				} catch (Exception e) {
 					// TODO: handle exception
-//					e.printStackTrace();
+					// e.printStackTrace();
 				}
 				try {
 					handicap = convertHandicap(row.getCell(11).asText());
@@ -296,6 +309,11 @@ public class OddUtilities {
 							Odd odd = new Odd(team1, team2, handicap, odd1,
 									odd2, OddType.OU_HALFTIME);
 
+							odd.setOdd_home_xpath(((HtmlElement) row.getCell(12)
+									.getFirstChild()).getAttribute("href"));
+							odd.setOdd_away_xpath(((HtmlElement) row.getCell(13)
+									.getFirstChild()).getAttribute("href"));
+							
 							OddElement new_element = new OddElement(odd,
 									row.getCell(12), row.getCell(13));
 							result.put(odd.getId(), new_element);
@@ -303,7 +321,7 @@ public class OddUtilities {
 					}
 				} catch (Exception e) {
 					// TODO: handle exception
-//					e.printStackTrace();
+					// e.printStackTrace();
 				}
 
 			}

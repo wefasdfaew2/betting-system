@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.UnexpectedPage;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.FrameWindow;
@@ -45,6 +46,7 @@ import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class ThreeInOnePlayer extends Thread implements MessageListener {
+	String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
 	private final Logger logger;
 	private String username;
 	private String pass;
@@ -74,7 +76,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	}
 
 	public void startConnection() throws JMSException {
-		String url = "tcp://localhost:61616?jms.useAsyncSend=true";
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		Connection connection = factory.createConnection();
 		Session session = connection.createSession(false,
@@ -161,6 +162,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
 		webClient.setThrowExceptionOnFailingStatusCode(false);
+		// webClient.setAjaxController(new
+		// NicelyResynchronizingAjaxController());
 
 		page = webClient.getPage("http://www.3in1bet.com");
 
@@ -254,24 +257,27 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 		// virtual button to click refresh, call javascript skip check time
 		refresh_live = odd_page.createElement("button");
-		refresh_live
-				.setAttribute(
-						"onclick",
-						"var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);");
+		// refresh_live
+		// .setAttribute(
+		// "onclick",
+		// "var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);");
+		refresh_live.setAttribute("onclick", "RefreshRunning()");
 		odd_page.appendChild(refresh_live);
 
 		refresh_nonlive = odd_page.createElement("button");
-		refresh_nonlive
-				.setAttribute(
-						"onclick",
-						"var data = GetOddsParams(3, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
+		// refresh_nonlive
+		// .setAttribute(
+		// "onclick",
+		// "var data = GetOddsParams(3, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
+		refresh_nonlive.setAttribute("onclick", "return RefreshIncrement();");
 		odd_page.appendChild(refresh_nonlive);
 
 		refresh_early = odd_page.createElement("button");
-		refresh_early
-				.setAttribute(
-						"onclick",
-						"var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
+		// refresh_early
+		// .setAttribute(
+		// "onclick",
+		// "var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
+		refresh_early.setAttribute("onclick", "return RefreshIncrement();");
 		odd_page.appendChild(refresh_early);
 
 		stop_button = odd_page.createElement("button");
@@ -382,11 +388,13 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				if (this.current_map_odds.containsKey(odd.getId())) {
 					logger.info(odd);
 					if (is_home)
-						this.placeBet(this.current_map_odds.get(odd.getId())
-								.getHome());
+						this.placeBet(odd.getOdd_home_xpath(),
+								this.current_map_odds.get(odd.getId())
+										.getHome());
 					else
-						this.placeBet(this.current_map_odds.get(odd.getId())
-								.getAway());
+						this.placeBet(odd.getOdd_away_xpath(),
+								this.current_map_odds.get(odd.getId())
+										.getAway());
 				} else {
 					logger.info("odd disapear...");
 				}
@@ -408,17 +416,19 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 	}
 
-	public void placeBet(HtmlElement element) {
+	public void placeBet(String script, HtmlElement element) {
 		try {
 			HtmlElement odd_element = (HtmlElement) element.getFirstChild();
 			// String submit_odd = odd_element.asText();
+			odd_element.setAttribute("onclick", script);
+			odd_element.removeAttribute("href");
 			logger.info(odd_element.asXml());
+
+			odd_element.click();
+			Thread.sleep(300);
 
 			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
 					"fraPanel").getEnclosedPage();
-
-			odd_element.click();
-			Thread.sleep(100);
 
 			// String bet_odd =
 			// ticket_page.getElementById("lb_bet_odds").asText();
@@ -446,7 +456,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			logger.error(StackTraceUtil.getStackTrace(e));
 		}
 	}
-
 	// private boolean getEquals(String o1, String o2) {
 	// try {
 	// float a1 = Float.parseFloat(o1);
