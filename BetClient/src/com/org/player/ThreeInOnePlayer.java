@@ -157,7 +157,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		webClient = new WebClient(BrowserVersion.FIREFOX_3);
+		webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
@@ -261,7 +261,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// .setAttribute(
 		// "onclick",
 		// "var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);");
-		refresh_live.setAttribute("onclick", "RefreshRunning()");
+		refresh_live
+				.setAttribute("onclick",
+						"RefreshRunning();secondsLiveLeft = 1000;secondsTodayLeft = 1000;");
 		odd_page.appendChild(refresh_live);
 
 		refresh_nonlive = odd_page.createElement("button");
@@ -269,7 +271,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// .setAttribute(
 		// "onclick",
 		// "var data = GetOddsParams(3, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
-		refresh_nonlive.setAttribute("onclick", "return RefreshIncrement();");
+		refresh_nonlive
+				.setAttribute("onclick",
+						"RefreshIncrement();secondsLiveLeft = 1000;secondsTodayLeft = 1000;");
 		odd_page.appendChild(refresh_nonlive);
 
 		refresh_early = odd_page.createElement("button");
@@ -277,12 +281,10 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// .setAttribute(
 		// "onclick",
 		// "var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
-		refresh_early.setAttribute("onclick", "return RefreshIncrement();");
+		refresh_early
+				.setAttribute("onclick",
+						"RefreshIncrement();secondsLiveLeft = 1000;secondsTodayLeft = 1000;");
 		odd_page.appendChild(refresh_early);
-
-		stop_button = odd_page.createElement("button");
-		stop_button.setAttribute("onclick", "window.stop()");
-		odd_page.appendChild(stop_button);
 
 		// establish connection
 		try {
@@ -291,6 +293,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			logger.info("error establish JMS connection...exiting..");
 			return;
 		}
+		
 		// webClient.closeAllWindows();
 	}
 
