@@ -57,6 +57,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	private HtmlPage odd_page;
 	private WebClient webClient;
 	private HtmlPage page;
+	private HtmlPage ticket_page;
 	private HashMap<String, OddElement> current_map_odds;
 	HtmlTable table = null;
 	HtmlTable table_nonlive = null;
@@ -64,9 +65,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	HtmlElement refresh_nonlive;
 	HtmlElement refresh_early;
 	private boolean isPolling = false;
-	HtmlElement odd_element;
-	HtmlElement tmp_element;
-	HtmlPage left_page;
+	private HtmlElement stop_button;
 
 	public static void main(String[] argv) throws JMSException,
 			FailingHttpStatusCodeException, MalformedURLException, IOException,
@@ -224,7 +223,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		webClient.waitForBackgroundJavaScript(3000);
 
 		FrameWindow frm_left = page.getFrameByName("fraPanel");
-		left_page = (HtmlPage) frm_left.getEnclosedPage();
+		HtmlPage left_page = (HtmlPage) frm_left.getEnclosedPage();
 
 		webClient.waitForBackgroundJavaScript(3000);
 
@@ -243,6 +242,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 		// tblData5
 		// Process get table and display
+		ticket_page = (HtmlPage) this.webClient.getWebWindowByName("fraPanel")
+				.getEnclosedPage();
 
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
@@ -285,14 +286,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 						"RefreshIncrement();secondsLiveLeft = 1000;secondsTodayLeft = 1000;");
 		odd_page.appendChild(refresh_early);
 
-		// virtual odd element to place bet
-		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
-		odd_element = odd_page.createElement("a");
-		form.appendChild(odd_element);
-		
-		tmp_element = left_page.createElement("a");
-		left_page .appendChild(tmp_element);
-		
 		// establish connection
 		try {
 			this.startConnection();
@@ -407,6 +400,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				// logger.info(odd);
 
 			} else if (message instanceof TextMessage) {
+				logger.info("3in received");
 				TextMessage mes = (TextMessage) message;
 				if (mes.getText().equals("UPDATE")) {
 					Thread t = new Thread(this);
@@ -430,19 +424,28 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			// String submit_odd = odd_element.asText();
 			String key = script.split("'")[1];
 
-			// first get odd info
+			// form hdpdouble from bet page
+			HtmlPage main_page = (HtmlPage) this.webClient.getWebWindowByName(
+					"fraMain").getEnclosedPage();
 			String java_script = "var info = CacheData('key');$(this).text(info);"
 					.replaceAll("key", key);
-			odd_element.setAttribute("onclick", java_script);			
+			HtmlForm form = (HtmlForm) main_page.getElementById("frmGVHDP");
+			HtmlElement odd_element = main_page.createElement("a");
+			odd_element.setAttribute("onclick", java_script);
+			form.appendChild(odd_element);
 			odd_element.click();
 
 			String info = odd_element.asText();
 			logger.info(info);
 
-			// admin left page			
-			tmp_element.setAttribute("onclick",
-					"onOddsClick('info')".replaceAll("info", info));			
-			tmp_element.click();
+			// admin left page
+			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
+					"fraPanel").getEnclosedPage();
+			odd_element = ticket_page.createElement("a");
+			odd_element.setAttribute("onclick",
+					"onOddsClick('info')".replaceAll("info", info));
+			// logger.info(odd_element.asXml());
+			odd_element.click();
 			this.webClient.waitForBackgroundJavaScript(300);
 
 			// String bet_odd =
@@ -455,7 +458,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			// + ticket_page.getElementById("td_tbg").asText());
 			// logger.info("submitted to bet :" + submit_odd);
 			// logger.info("real odd to bet :" + bet_odd);
-			logger.info(left_page.asText());
+			logger.info(ticket_page.asText());
 
 			// if (getEquals(submit_odd, bet_odd)) {
 			// logger.fatal("Ha ha we can bet now !!!");
@@ -472,6 +475,46 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		}
 	}
 
+	public void placeBet(String script, HtmlElement element) {
+		try {
+			HtmlElement odd_element = (HtmlElement) element.getFirstChild();
+			// String submit_odd = odd_element.asText();
+			odd_element.setAttribute("onclick", script);
+			odd_element.removeAttribute("href");
+			logger.info(odd_element.asXml());
+
+			odd_element.click();
+			Thread.sleep(300);
+
+			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
+					"fraPanel").getEnclosedPage();
+
+			// String bet_odd =
+			// ticket_page.getElementById("lb_bet_odds").asText();
+			// logger.info("match : "
+			// + ticket_page.getElementById("pn_title").asText());
+			// logger.info("team to bet :"
+			// + ticket_page.getElementById("lb_bet_team").asText());
+			// logger.info("hdp info : "
+			// + ticket_page.getElementById("td_tbg").asText());
+			// logger.info("submitted to bet :" + submit_odd);
+			// logger.info("real odd to bet :" + bet_odd);
+			logger.info(ticket_page.asText());
+
+			// if (getEquals(submit_odd, bet_odd)) {
+			// logger.fatal("Ha ha we can bet now !!!");
+			// HtmlElement bet_button = ticket_page.createElement("button");
+			// bet_button.setAttribute("onclick", "onBet();");
+			// // click bet
+			//
+			// ticket_page = bet_button.click();
+			// logger.info(ticket_page.asText());
+			//
+			// }
+		} catch (Exception e) {
+			logger.error(StackTraceUtil.getStackTrace(e));
+		}
+	}
 	// private boolean getEquals(String o1, String o2) {
 	// try {
 	// float a1 = Float.parseFloat(o1);
