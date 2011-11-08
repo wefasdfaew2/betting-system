@@ -435,7 +435,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			odd_element.click();
 
 			String info = odd_element.asText();
-			// logger.info(info);
+			logger.info(info);
 
 			// admin left page
 			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
