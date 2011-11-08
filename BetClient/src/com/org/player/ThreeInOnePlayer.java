@@ -293,7 +293,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			logger.info("error establish JMS connection...exiting..");
 			return;
 		}
-		
+
 		// webClient.closeAllWindows();
 	}
 
@@ -391,13 +391,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				if (this.current_map_odds.containsKey(odd.getId())) {
 					logger.info(odd);
 					if (is_home)
-						this.placeBet(odd.getOdd_home_xpath(),
-								this.current_map_odds.get(odd.getId())
-										.getHome());
+						this.placeBet(odd.getOdd_home_xpath());
 					else
-						this.placeBet(odd.getOdd_away_xpath(),
-								this.current_map_odds.get(odd.getId())
-										.getAway());
+						this.placeBet(odd.getOdd_away_xpath());
 				} else {
 					logger.info("odd disapear...");
 				}
@@ -408,6 +404,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				if (mes.getText().equals("UPDATE")) {
 					Thread t = new Thread(this);
 					t.start();
+				} else {
+					// this for debug only
+					this.placeBet(mes.getText());
 				}
 
 			}
@@ -417,6 +416,62 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			e.printStackTrace();
 		}
 
+	}
+
+	public void placeBet(String script) {
+		try {
+			// String submit_odd = odd_element.asText();
+			String key = script.split("'")[1];
+
+			// form hdpdouble from bet page
+			HtmlPage main_page = (HtmlPage) this.webClient.getWebWindowByName(
+					"fraMain").getEnclosedPage();
+			String java_script = "var info = CacheData('key');$(this).text(info);"
+					.replaceAll("key", key);
+			HtmlForm form = (HtmlForm) main_page.getElementById("frmGVHDP");
+			HtmlElement odd_element = main_page.createElement("a");
+			odd_element.setAttribute("onclick", java_script);
+			form.appendChild(odd_element);
+			odd_element.click();
+
+			String info = odd_element.asText();
+			// logger.info(info);
+
+			// admin left page
+			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
+					"fraPanel").getEnclosedPage();
+			odd_element = ticket_page.createElement("a");
+			odd_element.setAttribute("onclick",
+					"onOddsClick('info')".replaceAll("info", info));
+			// logger.info(odd_element.asXml());
+			odd_element.click();
+			this.webClient.waitForBackgroundJavaScript(300);
+
+			// String bet_odd =
+			// ticket_page.getElementById("lb_bet_odds").asText();
+			// logger.info("match : "
+			// + ticket_page.getElementById("pn_title").asText());
+			// logger.info("team to bet :"
+			// + ticket_page.getElementById("lb_bet_team").asText());
+			// logger.info("hdp info : "
+			// + ticket_page.getElementById("td_tbg").asText());
+			// logger.info("submitted to bet :" + submit_odd);
+			// logger.info("real odd to bet :" + bet_odd);
+			logger.info(ticket_page.asText());
+
+			// if (getEquals(submit_odd, bet_odd)) {
+			// logger.fatal("Ha ha we can bet now !!!");
+			// HtmlElement bet_button = ticket_page.createElement("button");
+			// bet_button.setAttribute("onclick", "onBet();");
+			// // click bet
+			//
+			// ticket_page = bet_button.click();
+			// logger.info(ticket_page.asText());
+			//
+			// }
+		} catch (Exception e) {
+			logger.error(StackTraceUtil.getStackTrace(e));
+		}
 	}
 
 	public void placeBet(String script, HtmlElement element) {
