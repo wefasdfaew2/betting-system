@@ -338,6 +338,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		try {
 			// System.out.println(((TextMessage) message).getText());
 			if (message instanceof ObjectMessage) {
+				logger.info("sbo received");
 				ObjectMessage mes = (ObjectMessage) message;
 				Odd odd = (Odd) mes.getObject();
 				boolean is_home = mes.getBooleanProperty("home");
