@@ -46,7 +46,7 @@ import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class ThreeInOnePlayer extends Thread implements MessageListener {
-	String url = "tcp://210.211.101.70:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
+	String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
 	private final Logger logger;
 	private String username;
 	private String pass;
@@ -156,14 +156,14 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_6);
+		webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
 		webClient.setThrowExceptionOnFailingStatusCode(false);
 		// webClient.setAjaxController(new
 		// NicelyResynchronizingAjaxController());
-
+		
 		page = webClient.getPage("http://www.3in1bet.com");
 
 		// Get frames
@@ -247,43 +247,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
 
-		webClient.waitForBackgroundJavaScript(3000);
-		// sendData(table, table_nonlive);
-
-		// virtual button to click refresh, call javascript skip check time
-		refresh_live = odd_page.createElement("button");
-		// refresh_live
-		// .setAttribute(
-		// "onclick",
-		// "var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);");
-		refresh_live
-				.setAttribute(
-						"onclick",
-						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-		odd_page.appendChild(refresh_live);
-
-		refresh_nonlive = odd_page.createElement("button");
-		// refresh_nonlive
-		// .setAttribute(
-		// "onclick",
-		// "var data = GetOddsParams(3, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
-		refresh_nonlive
-				.setAttribute(
-						"onclick",
-						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-		odd_page.appendChild(refresh_nonlive);
-
-		refresh_early = odd_page.createElement("button");
-		// refresh_early
-		// .setAttribute(
-		// "onclick",
-		// "var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
-		refresh_early
-				.setAttribute(
-						"onclick",
-						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-		odd_page.appendChild(refresh_early);
-
+		webClient.waitForBackgroundJavaScript(3000);		
 		// establish connection
 		try {
 			this.startConnection();
@@ -304,6 +268,22 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		HashMap<String, OddElement> map_odds = new HashMap<String, OddElement>();
 		// Click update live and non-live
 		// live
+		FrameWindow frm_main = page.getFrameByName("fraMain");
+		odd_page = (HtmlPage) frm_main.getEnclosedPage();
+		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
+		// virtual button to click refresh, call javascript skip check time
+		refresh_live = odd_page.createElement("a");
+		refresh_live
+				.setAttribute(
+						"onclick",
+						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+		form.appendChild(refresh_live);
+		refresh_nonlive = odd_page.createElement("a");
+		refresh_nonlive
+				.setAttribute(
+						"onclick",
+						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+		form.appendChild(refresh_nonlive);
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
 			HtmlPage tmp_page = refresh_live.click();
@@ -444,7 +424,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 					"fraPanel").getEnclosedPage();
 			odd_element = ticket_page.createElement("a");
 			odd_element.setAttribute("onclick",
-					"onOddsClick('info')".replaceAll("info", info));
+					"onOddsClick('info');onBet();".replaceAll("info", info));
 			// logger.info(odd_element.asXml());
 			odd_element.click();
 			this.webClient.waitForBackgroundJavaScript(300);
