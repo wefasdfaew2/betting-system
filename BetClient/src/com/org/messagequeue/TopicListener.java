@@ -29,7 +29,7 @@ public class TopicListener implements MessageListener {
 	private Connection connection;
 	private Session session;
 	private Queue topic;
-	private String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
+	private String url = JMSConfiguration.getHostURL();
 	private OddEngine engine;
 	private String topicname;
 
@@ -45,8 +45,8 @@ public class TopicListener implements MessageListener {
 		TopicListener l = new TopicListener("topictest.messages");
 		l.openConnection();
 
-		Dispatcher three = new Dispatcher(false, true);
-		Dispatcher sbo = new Dispatcher(true, false);
+		Dispatcher three = new Dispatcher(false, true, argv[0]);
+		Dispatcher sbo = new Dispatcher(true, false, argv[0]);
 
 		(new Thread(sbo)).start();
 		(new Thread(three)).start();

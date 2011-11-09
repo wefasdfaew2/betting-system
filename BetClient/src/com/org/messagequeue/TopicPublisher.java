@@ -24,7 +24,7 @@ public class TopicPublisher {
 	private Session session;
 	private MessageProducer publisher;
 	private Queue topic;
-	private String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
+	private String url = JMSConfiguration.getHostURL();
 
 	@Test
 	public void unittest() throws Exception {

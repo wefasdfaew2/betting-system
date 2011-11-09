@@ -10,12 +10,13 @@ public class Dispatcher implements Runnable {
 	private long delay;
 	private boolean isSbo;
 	private boolean isThree;
+	private String acc_file;
 
 	public static void main(String[] args) {
 		try {
 			long sleep_time = Long.parseLong(args[0]);
 			String acc_content = IOUtils.toString(new FileInputStream(
-					"account.txt"));
+					args[1]));
 			String[] list = acc_content.split("\r\n");
 
 			String[] sbo = list[0].split(";");
@@ -46,17 +47,18 @@ public class Dispatcher implements Runnable {
 		}
 	}
 
-	public Dispatcher(boolean isSbo, boolean isThree) {
+	public Dispatcher(boolean isSbo, boolean isThree,String acc_file) {
 		super();
 		this.isSbo = isSbo;
 		this.isThree = isThree;
+		this.acc_file = acc_file;
 	}
 
 	@Override
 	public void run() {
 		try {
 			String acc_content = IOUtils.toString(new FileInputStream(
-					"account.txt"));
+					this.acc_file));
 			String[] list = acc_content.split("\r\n");
 			if (this.isSbo)
 				this.delay = Long.parseLong(list[2].trim());

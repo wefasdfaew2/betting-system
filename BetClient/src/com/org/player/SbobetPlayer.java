@@ -34,6 +34,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTable;
 import com.org.captcha.CaptchaUtilities;
 import com.org.captcha.Site;
+import com.org.messagequeue.JMSConfiguration;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
 import com.org.odd.OddElement;
@@ -41,7 +42,7 @@ import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class SbobetPlayer extends Thread implements MessageListener {
-	String url = "tcp://210.211.101.70:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
+	String url = JMSConfiguration.getHostURL();
 	private TopicPublisher p;
 	private final Logger logger;
 	private String username;

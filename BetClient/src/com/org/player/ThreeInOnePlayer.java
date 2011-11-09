@@ -39,6 +39,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTable;
 import com.org.captcha.CaptchaUtilities;
 import com.org.captcha.Site;
+import com.org.messagequeue.JMSConfiguration;
 import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
 import com.org.odd.OddElement;
@@ -46,7 +47,7 @@ import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class ThreeInOnePlayer extends Thread implements MessageListener {
-	String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
+	String url = JMSConfiguration.getHostURL();
 	private final Logger logger;
 	private String username;
 	private String pass;
@@ -163,7 +164,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		webClient.setThrowExceptionOnFailingStatusCode(false);
 		// webClient.setAjaxController(new
 		// NicelyResynchronizingAjaxController());
-		
+
 		page = webClient.getPage("http://www.3in1bet.com");
 
 		// Get frames
@@ -247,7 +248,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
 
-		webClient.waitForBackgroundJavaScript(3000);		
+		webClient.waitForBackgroundJavaScript(3000);
 		// establish connection
 		try {
 			this.startConnection();
