@@ -56,8 +56,6 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	private WebClient webClient;
 	private boolean isCrawler;
 	private HashMap<String, OddElement> current_map_odds;
-	HtmlTable table = null;
-	HtmlTable table_nonlive = null;
 	HtmlElement refresh_live;
 	HtmlElement refresh_nonlive;
 	private boolean isPolling = false;
@@ -278,7 +276,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 					&& odd_page.getElementById("levents").getFirstChild() != null
 					&& !odd_page.getElementById("levents").getFirstChild()
 							.asXml().equals("")) {
-				table = (HtmlTable) odd_page.getElementById("levents")
+				HtmlTable table = (HtmlTable) odd_page.getElementById("levents")
 						.getFirstChild();
 				table = (HtmlTable) table.getBodies().get(0).getRows().get(0)
 						.getCell(0).getFirstChild();
@@ -299,7 +297,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 					&& odd_page.getElementById("events").getFirstChild() != null
 					&& !odd_page.getElementById("events").getFirstChild()
 							.asXml().equals("")) {
-				table_nonlive = (HtmlTable) odd_page.getElementById("events")
+				HtmlTable table_nonlive = (HtmlTable) odd_page.getElementById("events")
 						.getFirstChild();
 				table_nonlive = (HtmlTable) table_nonlive.getBodies().get(0)
 						.getRows().get(0).getCell(0).getFirstChild();

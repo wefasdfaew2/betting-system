@@ -59,8 +59,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	private HtmlPage page;
 	private HtmlPage ticket_page;
 	private HashMap<String, OddElement> current_map_odds;
-	HtmlTable table = null;
-	HtmlTable table_nonlive = null;
+
 	HtmlElement refresh_live;
 	HtmlElement refresh_nonlive;
 	HtmlElement refresh_early;
@@ -249,10 +248,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
 
 		webClient.waitForBackgroundJavaScript(3000);
-
-		table = (HtmlTable) odd_page.getElementById("tblData5");
-		table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
-
 		// sendData(table, table_nonlive);
 
 		// virtual button to click refresh, call javascript skip check time
@@ -262,7 +257,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "onclick",
 		// "var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);");
 		refresh_live
-				.setAttribute("onclick",
+				.setAttribute(
+						"onclick",
 						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		odd_page.appendChild(refresh_live);
 
@@ -272,7 +268,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "onclick",
 		// "var data = GetOddsParams(3, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		refresh_nonlive
-				.setAttribute("onclick",
+				.setAttribute(
+						"onclick",
 						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		odd_page.appendChild(refresh_nonlive);
 
@@ -282,7 +279,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "onclick",
 		// "var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		refresh_early
-				.setAttribute("onclick",
+				.setAttribute(
+						"onclick",
 						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		odd_page.appendChild(refresh_early);
 
@@ -308,9 +306,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// live
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
-			odd_page = refresh_live.click();
+			HtmlPage tmp_page = refresh_live.click();
 			// Thread.sleep(sleep_time);
-			table = (HtmlTable) odd_page.getElementById("tblData5");
+			HtmlTable table = (HtmlTable) tmp_page.getElementById("tblData5");
 			map_odds.putAll(this.util.getOddsFromThreeInOne(table));
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
@@ -321,12 +319,15 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				|| this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
 			// non -live
+			HtmlPage tmp_page = null;
 			if (this.side == OddSide.NON_LIVE)
-				odd_page = refresh_nonlive.click();
+				tmp_page = refresh_nonlive.click();
 			else if (this.side == OddSide.EARLY)
-				odd_page = refresh_early.click();
+				tmp_page = refresh_early.click();
 			// Thread.sleep(sleep_time);
-			table_nonlive = (HtmlTable) odd_page.getElementById("tblData6");
+
+			HtmlTable table_nonlive = (HtmlTable) tmp_page
+					.getElementById("tblData6");
 			map_odds.putAll(this.util.getOddsFromThreeInOne(table_nonlive));
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
@@ -420,7 +421,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 	public void placeBet(String script) {
 		try {
-//			logger.info("3in received");
+			// logger.info("3in received");
 			// String submit_odd = odd_element.asText();
 			String key = script.split("'")[1];
 
