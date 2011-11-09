@@ -46,7 +46,7 @@ import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class ThreeInOnePlayer extends Thread implements MessageListener {
-	String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
+	String url = "tcp://210.211.101.70:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
 	private final Logger logger;
 	private String username;
 	private String pass;
@@ -263,7 +263,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);");
 		refresh_live
 				.setAttribute("onclick",
-						"RefreshRunning();secondsLiveLeft = 1000;secondsTodayLeft = 1000;");
+						"secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;RefreshRunning();");
 		odd_page.appendChild(refresh_live);
 
 		refresh_nonlive = odd_page.createElement("button");
@@ -273,7 +273,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "var data = GetOddsParams(3, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		refresh_nonlive
 				.setAttribute("onclick",
-						"RefreshIncrement();secondsLiveLeft = 1000;secondsTodayLeft = 1000;");
+						"secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;RefreshIncrement();");
 		odd_page.appendChild(refresh_nonlive);
 
 		refresh_early = odd_page.createElement("button");
@@ -283,7 +283,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		refresh_early
 				.setAttribute("onclick",
-						"RefreshIncrement();secondsLiveLeft = 1000;secondsTodayLeft = 1000;");
+						"secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;RefreshIncrement();");
 		odd_page.appendChild(refresh_early);
 
 		// establish connection
@@ -383,24 +383,23 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				boolean is_home = mes.getBooleanProperty("home");
 				// do update again to up to newest odd, if crawl exactly do not
 				// need to do this
-				try {
-					this.doPolling();
-				} catch (Exception e) {
-					// TODO: handle exception
-				}
-				if (this.current_map_odds.containsKey(odd.getId())) {
-					logger.info(odd);
-					if (is_home)
-						this.placeBet(odd.getOdd_home_xpath());
-					else
-						this.placeBet(odd.getOdd_away_xpath());
-				} else {
-					logger.info("odd disapear...");
-				}
+				// try {
+				// this.doPolling();
+				// } catch (Exception e) {
+				// // TODO: handle exception
+				// }
+				// if (this.current_map_odds.containsKey(odd.getId())) {
+				logger.info(odd);
+				if (is_home)
+					this.placeBet(odd.getOdd_home_xpath());
+				else
+					this.placeBet(odd.getOdd_away_xpath());
+				// } else {
+				// logger.info("odd disapear...");
+				// }
 				// logger.info(odd);
 
 			} else if (message instanceof TextMessage) {
-				logger.info("3in received");
 				TextMessage mes = (TextMessage) message;
 				if (mes.getText().equals("UPDATE")) {
 					Thread t = new Thread(this);
@@ -421,6 +420,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 	public void placeBet(String script) {
 		try {
+//			logger.info("3in received");
 			// String submit_odd = odd_element.asText();
 			String key = script.split("'")[1];
 

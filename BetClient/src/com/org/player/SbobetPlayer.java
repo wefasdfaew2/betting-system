@@ -41,7 +41,7 @@ import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
 public class SbobetPlayer extends Thread implements MessageListener {
-	String url = "tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
+	String url = "tcp://210.211.101.70:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0";
 	private TopicPublisher p;
 	private final Logger logger;
 	private String username;
