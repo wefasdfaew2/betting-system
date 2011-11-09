@@ -263,7 +263,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);");
 		refresh_live
 				.setAttribute("onclick",
-						"secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;RefreshRunning();");
+						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		odd_page.appendChild(refresh_live);
 
 		refresh_nonlive = odd_page.createElement("button");
@@ -273,7 +273,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "var data = GetOddsParams(3, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		refresh_nonlive
 				.setAttribute("onclick",
-						"secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;RefreshIncrement();");
+						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		odd_page.appendChild(refresh_nonlive);
 
 		refresh_early = odd_page.createElement("button");
@@ -283,7 +283,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "var data = GetOddsParams(7, LastTodayVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncTodayData, onLoadingDataException);");
 		refresh_early
 				.setAttribute("onclick",
-						"secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;RefreshIncrement();");
+						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		odd_page.appendChild(refresh_early);
 
 		// establish connection
