@@ -277,8 +277,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 					&& odd_page.getElementById("levents").getFirstChild() != null
 					&& !odd_page.getElementById("levents").getFirstChild()
 							.asXml().equals("")) {
-				HtmlTable table = (HtmlTable) odd_page.getElementById("levents")
-						.getFirstChild();
+				HtmlTable table = (HtmlTable) odd_page
+						.getElementById("levents").getFirstChild();
 				table = (HtmlTable) table.getBodies().get(0).getRows().get(0)
 						.getCell(0).getFirstChild();
 
@@ -298,8 +298,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 					&& odd_page.getElementById("events").getFirstChild() != null
 					&& !odd_page.getElementById("events").getFirstChild()
 							.asXml().equals("")) {
-				HtmlTable table_nonlive = (HtmlTable) odd_page.getElementById("events")
-						.getFirstChild();
+				HtmlTable table_nonlive = (HtmlTable) odd_page.getElementById(
+						"events").getFirstChild();
 				table_nonlive = (HtmlTable) table_nonlive.getBodies().get(0)
 						.getRows().get(0).getCell(0).getFirstChild();
 				map_odds.putAll(this.util.getOddsFromSobet(table_nonlive));
@@ -365,10 +365,19 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				if (mes.getText().equals("UPDATE")) {
 					Thread t = new Thread(this);
 					t.start();
+				} else {
+					this.doPolling();
+					for (OddElement e : this.current_map_odds.values()) {
+						this.placeBet(e.getHome());
+						return;
+					}
 				}
 			}
 			// logger.info(((ObjectMessage)message));
 		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -378,17 +387,6 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	public void placeBet(HtmlElement element) {
 		try {
 			HtmlElement odd_element = (HtmlElement) element.getFirstChild();
-			// String xpath = odd_element.getCanonicalXPath();
-			// from the xpath find the div which contain the action that the
-			// span element missing
-			// String[] xpath_element = xpath.split("/");
-			// String div_xpath = "/" + xpath_element[0] + "/" +
-			// xpath_element[1]
-			// + "/" + xpath_element[2];
-			// logger.info(div_xpath);
-			// HtmlElement div_element =
-			// this.odd_page.getFirstByXPath(div_xpath);
-			// String div_javascript = div_element.getAttribute("onclick");
 			odd_element.setAttribute("onclick", "od_OnClick(0, event)");
 
 			// if (this.side == OddSide.LIVE || this.side == OddSide.EARLY)
@@ -435,10 +433,10 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			// virtual element to place bet
 			// if (getEquals(submit_odd, bet_odd)) {
 			// logger.info("match odd accept now bet ha ha!");
-			// e = ticket_div.createElement("a");
-			// e.setAttribute("onclick", "return placebet();");
-			// ticket_div.appendChild(e);
-			// e.click();
+			HtmlElement e = ticket_div.createElement("a");
+			e.setAttribute("onclick", "return placebet();");
+			ticket_div.appendChild(e);
+			e.click();
 			// }
 
 		} catch (Exception e) {

@@ -142,8 +142,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			}
 		}
 		// update current map to update map
-		this.current_map_odds.clear();
-		this.current_map_odds.putAll(map_odds);
+		this.current_map_odds = map_odds;
 		p.sendMapMessage(send_odds, "3in");
 	}
 
@@ -157,7 +156,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
+		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
@@ -290,7 +289,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			HtmlPage tmp_page = refresh_live.click();
 			// Thread.sleep(sleep_time);
 			HtmlTable table = (HtmlTable) tmp_page.getElementById("tblData5");
-			map_odds.putAll(this.util.getOddsFromThreeInOne(table));
+			map_odds = this.util.getOddsFromThreeInOne(table);
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
 			// String d = "" + delay;
@@ -309,7 +308,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 			HtmlTable table_nonlive = (HtmlTable) tmp_page
 					.getElementById("tblData6");
-			map_odds.putAll(this.util.getOddsFromThreeInOne(table_nonlive));
+			map_odds = this.util.getOddsFromThreeInOne(table_nonlive);
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
 			// String d = "" + delay;
@@ -425,10 +424,10 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 					"fraPanel").getEnclosedPage();
 			odd_element = ticket_page.createElement("a");
 			odd_element.setAttribute("onclick",
-					"onOddsClick('info');onBet();".replaceAll("info", info));
+					"onOddsClick('info');".replaceAll("info", info));
 			// logger.info(odd_element.asXml());
 			odd_element.click();
-			this.webClient.waitForBackgroundJavaScript(300);
+			this.webClient.waitForBackgroundJavaScript(100);
 
 			// String bet_odd =
 			// ticket_page.getElementById("lb_bet_odds").asText();
@@ -440,16 +439,17 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			// + ticket_page.getElementById("td_tbg").asText());
 			// logger.info("submitted to bet :" + submit_odd);
 			// logger.info("real odd to bet :" + bet_odd);
-			logger.info(ticket_page.asText());
+			// logger.info(ticket_page.asText());
 
 			// if (getEquals(submit_odd, bet_odd)) {
 			// logger.fatal("Ha ha we can bet now !!!");
-			// HtmlElement bet_button = ticket_page.createElement("button");
-			// bet_button.setAttribute("onclick", "onBet();");
-			// // click bet
-			//
-			// ticket_page = bet_button.click();
-			// logger.info(ticket_page.asText());
+			HtmlElement bet_button = ticket_page.createElement("button");
+			bet_button.setAttribute("onclick", "onBet();");
+			ticket_page.appendChild(bet_button);
+			// click bet
+
+			ticket_page = bet_button.click();
+			logger.info(ticket_page.asText());
 			//
 			// }
 		} catch (Exception e) {

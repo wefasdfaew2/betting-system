@@ -27,8 +27,8 @@
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v7.0"/>
 	<classpathentry kind="lib" path="E:/Dev/Tomcat 7.0/bin/tomcat-juli.jar"/>
 	<classpathentry kind="lib" path="E:/Dev/Tomcat 7.0/lib/servlet-api.jar"/>
-	<classpathentry kind="lib" path="C:/Users/a/Desktop/htmlunit/htmlunit/target/htmlunit-2.10-SNAPSHOT-bin/htmlunit-2.10-SNAPSHOT/lib/commons-lang3-3.0.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/a/Desktop/htmlunit/htmlunit/target/htmlunit-2.10-SNAPSHOT-bin/htmlunit-2.10-SNAPSHOT/lib/htmlunit-2.10-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="C:/Users/a/Desktop/htmlunit/htmlunit/target/htmlunit-2.10-SNAPSHOT-bin/htmlunit-2.10-SNAPSHOT/lib/htmlunit-core-js-2.10-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="C:/Users/a/Desktop/htmlunit/htmlunit/target/htmlunit-2.10-SNAPSHOT/lib/commons-lang3-3.0.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/a/Desktop/htmlunit/htmlunit/target/htmlunit-2.10-SNAPSHOT/lib/htmlunit-2.10-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="C:/Users/a/Desktop/htmlunit/htmlunit/target/htmlunit-2.10-SNAPSHOT/lib/htmlunit-core-js-2.10-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
