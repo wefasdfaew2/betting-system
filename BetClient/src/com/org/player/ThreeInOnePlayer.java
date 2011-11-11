@@ -66,56 +66,61 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	HtmlElement refresh_early;
 	private boolean isPolling = false;
 	private boolean isLoggin = false;
+	Session session;
+	Connection connection;
 
 	public static void main(String[] argv) {
-		try {
-			OddSide side = OddSide.LIVE;
-			ThreeInOnePlayer client = new ThreeInOnePlayer(argv[0], argv[1],
-					side);
+		while (true) {
 			try {
-				client.startConnection();
-			} catch (JMSException e) {
-				client.logger.info("error establish JMS connection");
-				return;
-			}
-			while (true) {
+				OddSide side = OddSide.LIVE;
+				ThreeInOnePlayer client = new ThreeInOnePlayer(argv[0],
+						argv[1], side);
+				try {
+					client.startConnection();
+				} catch (JMSException e) {
+					client.logger.info("error establish JMS connection");
+					return;
+				}
+
 				client.homePage();
 				Thread.sleep(1000 * 60 * 60 * 1);// play for 2 hours
 				client.loggout();
 				client.isLoggin = false;
+
+			} catch (JMSException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (FailingHttpStatusCodeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (JMSException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FailingHttpStatusCodeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
-	public void loggout() {
+	public void loggout() throws JMSException {
 		// stop any polling thread
 		if (this.isAlive())
 			this.interrupt();
 		this.webClient.closeAllWindows();
 		this.webClient = null;
+		this.session.close();
+		this.connection.stop();
 		this.isLoggin = false;
 	}
 
 	public void startConnection() throws JMSException {
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
-		Connection connection = factory.createConnection();
-		Session session = connection.createSession(false,
-				Session.AUTO_ACKNOWLEDGE);
+		connection = factory.createConnection();
+		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		Queue topic = session.createQueue(this.username);
 		MessageConsumer consumer = session.createConsumer(topic);
 		consumer.setMessageListener(this);
@@ -319,7 +324,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			HtmlPage tmp_page = refresh_live.click();
 			// Thread.sleep(sleep_time);
 			HtmlTable table = (HtmlTable) tmp_page.getElementById("tblData5");
-			map_odds = this.util.getOddsFromThreeInOne(table);
+			map_odds = this.util.getOddsFromThreeInOne((HtmlTable) table
+					.cloneNode(true));
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
 			// String d = "" + delay;
@@ -338,7 +344,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 			HtmlTable table_nonlive = (HtmlTable) tmp_page
 					.getElementById("tblData6");
-			map_odds = this.util.getOddsFromThreeInOne(table_nonlive);
+			map_odds = this.util
+					.getOddsFromThreeInOne((HtmlTable) table_nonlive
+							.cloneNode(true));
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
 			// String d = "" + delay;

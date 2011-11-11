@@ -62,43 +62,46 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	private boolean isPolling = false;
 	private HtmlElement stop_button;
 	private boolean isLoggin = false;
+	Session session;
+	Connection connection;
 
 	public static void main(String[] argv) {
-		try {
-			OddSide side = OddSide.LIVE;
-			SbobetPlayer client = new SbobetPlayer(argv[0], argv[1], side,
-					false);
-			// if not is crawler then start listen to bet
-			if (!client.isCrawler)
-				try {
-					client.startConnection();
-				} catch (JMSException e) {
-					client.logger.info("error establish JMS connection");
-					return;
-				}
-			else
-				client.logger.info("start crawling...");
-			while (true) {
+		while (true) {
+			try {
+				OddSide side = OddSide.LIVE;
+				SbobetPlayer client = new SbobetPlayer(argv[0], argv[1], side,
+						false);
+				// if not is crawler then start listen to bet
+				if (!client.isCrawler)
+					try {
+						client.startConnection();
+					} catch (JMSException e) {
+						client.logger.info("error establish JMS connection");
+						return;
+					}
+				else
+					client.logger.info("start crawling...");
+
 				client.homePage();
 				Thread.sleep(1000 * 60 * 60 * 1);// play for 1 hours
 				client.loggout();
-			}
 
-		} catch (JMSException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FailingHttpStatusCodeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			} catch (JMSException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (FailingHttpStatusCodeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 	}
@@ -109,9 +112,9 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 	public void startConnection() throws JMSException {
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
-		Connection connection = factory.createConnection();
-		Session session = connection.createSession(false,
-				Session.AUTO_ACKNOWLEDGE);
+		this.connection = factory.createConnection();
+		this.session = connection
+				.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		Queue topic = session.createQueue(this.username);
 		MessageConsumer consumer = session.createConsumer(topic);
 		consumer.setMessageListener(this);
@@ -179,12 +182,14 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		p.sendMapMessage(send_odds, "sbobet");
 	}
 
-	public void loggout() {
+	public void loggout() throws JMSException {
 		// stop any polling thread
 		if (this.isAlive())
 			this.interrupt();
 		this.webClient.closeAllWindows();
 		this.webClient = null;
+		this.session.close();
+		this.connection.stop();
 		this.isLoggin = false;
 	}
 
@@ -302,7 +307,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				table = (HtmlTable) table.getBodies().get(0).getRows().get(0)
 						.getCell(0).getFirstChild();
 
-				map_odds.putAll(this.util.getOddsFromSobet(table));
+				map_odds.putAll(this.util.getOddsFromSobet((HtmlTable) table
+						.cloneNode(true)));
 
 			}
 		}
@@ -322,7 +328,9 @@ public class SbobetPlayer extends Thread implements MessageListener {
 						"events").getFirstChild();
 				table_nonlive = (HtmlTable) table_nonlive.getBodies().get(0)
 						.getRows().get(0).getCell(0).getFirstChild();
-				map_odds.putAll(this.util.getOddsFromSobet(table_nonlive));
+				map_odds.putAll(this.util
+						.getOddsFromSobet((HtmlTable) table_nonlive
+								.cloneNode(true)));
 			}
 		}
 
