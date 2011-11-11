@@ -61,13 +61,29 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	HtmlElement refresh_nonlive;
 	private boolean isPolling = false;
 	private HtmlElement stop_button;
+	private boolean isLoggin = false;
 
 	public static void main(String[] argv) {
-		OddSide side = OddSide.LIVE;
-		SbobetPlayer client;
 		try {
-			client = new SbobetPlayer(argv[0], argv[1], side, false);
-			client.homePage();
+			OddSide side = OddSide.LIVE;
+			SbobetPlayer client = new SbobetPlayer(argv[0], argv[1], side,
+					false);
+			// if not is crawler then start listen to bet
+			if (!client.isCrawler)
+				try {
+					client.startConnection();
+				} catch (JMSException e) {
+					client.logger.info("error establish JMS connection");
+					return;
+				}
+			else
+				client.logger.info("start crawling...");
+			while (true) {
+				client.homePage();
+				Thread.sleep(1000 * 60 * 60 * 1);// play for 1 hours
+				client.loggout();
+			}
+
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -100,7 +116,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		MessageConsumer consumer = session.createConsumer(topic);
 		consumer.setMessageListener(this);
 		connection.start();
-		logger.info("Waiting for bet command...");
+		logger.info("Connected to Messge Server...");
 	}
 
 	public SbobetPlayer(String acc, OddSide side, boolean isCrawler)
@@ -159,8 +175,17 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		}
 		// update current map to update map
 		this.current_map_odds = map_odds;
-		if (send_odds.size() > 0)
-			p.sendMapMessage(send_odds, "sbobet");
+		// if (send_odds.size() > 0)
+		p.sendMapMessage(send_odds, "sbobet");
+	}
+
+	public void loggout() {
+		// stop any polling thread
+		if (this.isAlive())
+			this.interrupt();
+		this.webClient.closeAllWindows();
+		this.webClient = null;
+		this.isLoggin = false;
 	}
 
 	public void homePage() throws FailingHttpStatusCodeException,
@@ -208,7 +233,6 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				.get(0);
 		page = link.click();
 
-		logger.info("loggin as " + this.username);
 		// after login find the new host
 
 		webClient.waitForBackgroundJavaScript(30000);
@@ -251,15 +275,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		stop_button.setAttribute("onclick", "window.stop()");
 		odd_page.appendChild(stop_button);
 
-		// if not is crawler then start listen to bet
-		if (!this.isCrawler)
-			try {
-				this.startConnection();
-			} catch (JMSException e) {
-				logger.info("error establish JMS connection");
-			}
-		else
-			logger.info("start crawling...");
+		this.isLoggin = true;
+		logger.info("loggin as " + this.username);
 		// while (true) {
 		// this.doPolling();
 		// Thread.sleep(1000);
@@ -269,8 +286,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 	public void doPolling() throws IOException, JMSException {
 		// avoid overhead if is polling then return
-		if (isPolling)
-			return;
+		// if not login then quit
 		// set is polling to true so while polling do not polling any more
 		this.isPolling = true;
 		HashMap<String, OddElement> map_odds = new HashMap<String, OddElement>();
@@ -322,6 +338,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	public void run() {
 		// TODO Auto-generated method stub
 		try {
+			if (isPolling || !isLoggin)
+				return;
 			doPolling();
 		} catch (Exception e) {
 			logger.error(getStackTrace(e));

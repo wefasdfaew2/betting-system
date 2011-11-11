@@ -65,14 +65,50 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	HtmlElement refresh_nonlive;
 	HtmlElement refresh_early;
 	private boolean isPolling = false;
-	private HtmlElement stop_button;
+	private boolean isLoggin = false;
 
-	public static void main(String[] argv) throws JMSException,
-			FailingHttpStatusCodeException, MalformedURLException, IOException,
-			InterruptedException {
-		OddSide side = OddSide.LIVE;
-		ThreeInOnePlayer client = new ThreeInOnePlayer(argv[0], argv[1], side);
-		client.homePage();
+	public static void main(String[] argv) {
+		try {
+			OddSide side = OddSide.LIVE;
+			ThreeInOnePlayer client = new ThreeInOnePlayer(argv[0], argv[1],
+					side);
+			try {
+				client.startConnection();
+			} catch (JMSException e) {
+				client.logger.info("error establish JMS connection");
+				return;
+			}
+			while (true) {
+				client.homePage();
+				Thread.sleep(1000 * 60 * 60 * 1);// play for 2 hours
+				client.loggout();
+				client.isLoggin = false;
+			}
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FailingHttpStatusCodeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void loggout() {
+		// stop any polling thread
+		if (this.isAlive())
+			this.interrupt();
+		this.webClient.closeAllWindows();
+		this.webClient = null;
+		this.isLoggin = false;
 	}
 
 	public void startConnection() throws JMSException {
@@ -84,7 +120,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		MessageConsumer consumer = session.createConsumer(topic);
 		consumer.setMessageListener(this);
 		connection.start();
-		logger.info("Waiting for bet command...");
+		logger.info("Connected to Messge Server...");
 	}
 
 	public Logger getLogger() {
@@ -143,8 +179,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		}
 		// update current map to update map
 		this.current_map_odds = map_odds;
-		if (send_odds.size() > 0)
-			p.sendMapMessage(send_odds, "3in");
+		// if (send_odds.size() > 0)
+		p.sendMapMessage(send_odds, "3in");
 	}
 
 	public void witeStringtoFile(String content, String file)
@@ -212,8 +248,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 		webClient.waitForBackgroundJavaScript(3000);
 
-		logger.info("Logged in as " + this.username);
-
 		// after log in the request the main page
 		webClient.waitForBackgroundJavaScript(5000);
 
@@ -249,21 +283,16 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
 
 		webClient.waitForBackgroundJavaScript(3000);
-		// establish connection
-		try {
-			this.startConnection();
-		} catch (JMSException e) {
-			logger.info("error establish JMS connection...exiting..");
-			return;
-		}
+
+		this.isLoggin = true;
+		logger.info("Logged in as " + this.username);
 
 		// webClient.closeAllWindows();
 	}
 
 	public void doPolling() throws IOException, InterruptedException,
 			JMSException {
-		if (this.isPolling)
-			return;
+
 		this.isPolling = true;
 		// long delay = 0;
 		HashMap<String, OddElement> map_odds = new HashMap<String, OddElement>();
@@ -348,6 +377,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	@Override
 	public void run() {
 		try {
+			if (this.isPolling || !this.isLoggin)
+				return;
 			doPolling();
 		} catch (Exception e) {
 			e.printStackTrace();
