@@ -143,7 +143,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		}
 		// update current map to update map
 		this.current_map_odds = map_odds;
-		p.sendMapMessage(send_odds, "3in");
+		if (send_odds.size() > 0)
+			p.sendMapMessage(send_odds, "3in");
 	}
 
 	public void witeStringtoFile(String content, String file)
@@ -276,7 +277,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		refresh_live
 				.setAttribute(
 						"onclick",
-						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+						"var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		form.appendChild(refresh_live);
 		refresh_nonlive = odd_page.createElement("a");
 		refresh_nonlive
@@ -466,7 +467,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			logger.info(odd_element.asXml());
 
 			odd_element.click();
-			Thread.sleep(300);
+			Thread.sleep(30);
 
 			ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
 					"fraPanel").getEnclosedPage();
@@ -481,16 +482,17 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			// + ticket_page.getElementById("td_tbg").asText());
 			// logger.info("submitted to bet :" + submit_odd);
 			// logger.info("real odd to bet :" + bet_odd);
-			logger.info(ticket_page.asText());
+			// logger.info(ticket_page.asText());
 
 			// if (getEquals(submit_odd, bet_odd)) {
 			// logger.fatal("Ha ha we can bet now !!!");
-			// HtmlElement bet_button = ticket_page.createElement("button");
-			// bet_button.setAttribute("onclick", "onBet();");
-			// // click bet
-			//
-			// ticket_page = bet_button.click();
-			// logger.info(ticket_page.asText());
+			HtmlElement bet_button = ticket_page.createElement("button");
+			bet_button.setAttribute("onclick", "onBet();");
+			// click bet
+
+			ticket_page = bet_button.click();
+			Thread.sleep(30);
+			logger.info(ticket_page.asText());
 			//
 			// }
 		} catch (Exception e) {

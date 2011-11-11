@@ -1,0 +1,1 @@
+tcp://210.211.101.70:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0

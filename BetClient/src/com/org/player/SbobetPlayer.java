@@ -158,9 +158,9 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			}
 		}
 		// update current map to update map
-		this.current_map_odds.clear();
-		this.current_map_odds.putAll(map_odds);
-		p.sendMapMessage(send_odds, "sbobet");
+		this.current_map_odds = map_odds;
+		if (send_odds.size() > 0)
+			p.sendMapMessage(send_odds, "sbobet");
 	}
 
 	public void homePage() throws FailingHttpStatusCodeException,
@@ -260,6 +260,10 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			}
 		else
 			logger.info("start crawling...");
+		// while (true) {
+		// this.doPolling();
+		// Thread.sleep(1000);
+		// }
 
 	}
 
@@ -343,11 +347,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				boolean is_home = mes.getBooleanProperty("home");
 				// do update again to up to newest odd, if crawl exactly do not
 				// need to do this
-				try {
-					this.doPolling();
-				} catch (Exception e) {
-					// TODO: handle exception
-				}
+
 				if (this.current_map_odds.containsKey(odd.getId())) {
 					logger.info(odd);
 					if (is_home)
