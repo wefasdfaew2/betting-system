@@ -199,7 +199,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
+		webClient = new WebClient(BrowserVersion.FIREFOX_3_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);

@@ -364,7 +364,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		try {
 			// System.out.println(((TextMessage) message).getText());
 			if (message instanceof ObjectMessage) {
-				logger.info("sbo received");
+//				logger.info("sbo received");
 				ObjectMessage mes = (ObjectMessage) message;
 				Odd odd = (Odd) mes.getObject();
 				boolean is_home = mes.getBooleanProperty("home");
@@ -452,7 +452,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			// fill the stake
 			HtmlElement stake_input = ticket_div.getElementById("stake");
 			stake_input.setAttribute("value", "10");
-			logger.info(ticket_div.asText());
+			
 			// virtual element to place bet
 			// if (getEquals(submit_odd, bet_odd)) {
 			// logger.info("match odd accept now bet ha ha!");
@@ -460,6 +460,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			e.setAttribute("onclick", "return placebet();");
 			ticket_div.appendChild(e);
 			e.click();
+			logger.info(ticket_div.asText());
 			// }
 
 		} catch (Exception e) {
