@@ -8,7 +8,8 @@ public class DummyPlayer {
 			TopicPublisher p = new TopicPublisher();
 			while (true) {
 				p.sendMessage("1");
-				Thread.sleep(1000 * 60 *3);
+				int t = Integer.parseInt(args[0]);
+				Thread.sleep(1000 * 60 * t);
 			}
 		} catch (Exception e) {
 			// TODO: handle exception

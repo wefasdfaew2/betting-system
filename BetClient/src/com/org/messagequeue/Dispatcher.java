@@ -15,8 +15,7 @@ public class Dispatcher implements Runnable {
 	public static void main(String[] args) {
 		try {
 			long sleep_time = Long.parseLong(args[0]);
-			String acc_content = IOUtils.toString(new FileInputStream(
-					args[1]));
+			String acc_content = IOUtils.toString(new FileInputStream(args[1]));
 			String[] list = acc_content.split("\r\n");
 
 			String[] sbo = list[0].split(";");
@@ -28,16 +27,16 @@ public class Dispatcher implements Runnable {
 			for (int i = 0; i < three_in.length; i++) {
 				String[] th = three_in[i].split(",");
 				three_workers[i] = new ProcessBuilder(
-						"jdk1.6.0_21\\bin\\java.exe", "-jar", "3inbet.jar",
-						th[0], th[1]);
+						"jdk1.6.0_21\\bin\\java.exe", "-jar", "-Xmx500M",
+						"3inbet.jar", th[0], th[1]);
 				three_workers[i].start();
 				Thread.sleep(sleep_time);
 			}
 			for (int i = 0; i < sbo.length; i++) {
 				String[] sb = sbo[i].split(",");
 				sbo_workers[i] = new ProcessBuilder(
-						"jdk1.6.0_21\\bin\\java.exe", "-jar", "sbobet.jar",
-						sb[0], sb[1]);
+						"jdk1.6.0_21\\bin\\java.exe", "-jar", "-Xmx500M",
+						"sbobet.jar", sb[0], sb[1]);
 				sbo_workers[i].start();
 				Thread.sleep(sleep_time);
 			}
@@ -47,7 +46,7 @@ public class Dispatcher implements Runnable {
 		}
 	}
 
-	public Dispatcher(boolean isSbo, boolean isThree,String acc_file) {
+	public Dispatcher(boolean isSbo, boolean isThree, String acc_file) {
 		super();
 		this.isSbo = isSbo;
 		this.isThree = isThree;
