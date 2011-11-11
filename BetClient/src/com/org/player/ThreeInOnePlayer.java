@@ -324,8 +324,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			HtmlPage tmp_page = refresh_live.click();
 			// Thread.sleep(sleep_time);
 			HtmlTable table = (HtmlTable) tmp_page.getElementById("tblData5");
-			map_odds = this.util.getOddsFromThreeInOne((HtmlTable) table
-					.cloneNode(true));
+			map_odds = this.util.getOddsFromThreeInOne(table);
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
 			// String d = "" + delay;
@@ -344,9 +343,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 			HtmlTable table_nonlive = (HtmlTable) tmp_page
 					.getElementById("tblData6");
-			map_odds = this.util
-					.getOddsFromThreeInOne((HtmlTable) table_nonlive
-							.cloneNode(true));
+			map_odds = this.util.getOddsFromThreeInOne(table_nonlive);
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
 			// String d = "" + delay;

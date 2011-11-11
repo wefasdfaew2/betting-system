@@ -307,8 +307,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				table = (HtmlTable) table.getBodies().get(0).getRows().get(0)
 						.getCell(0).getFirstChild();
 
-				map_odds.putAll(this.util.getOddsFromSobet((HtmlTable) table
-						.cloneNode(true)));
+				map_odds.putAll(this.util.getOddsFromSobet(table));
 
 			}
 		}
@@ -328,9 +327,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 						"events").getFirstChild();
 				table_nonlive = (HtmlTable) table_nonlive.getBodies().get(0)
 						.getRows().get(0).getCell(0).getFirstChild();
-				map_odds.putAll(this.util
-						.getOddsFromSobet((HtmlTable) table_nonlive
-								.cloneNode(true)));
+				map_odds.putAll(this.util.getOddsFromSobet(table_nonlive));
 			}
 		}
 
