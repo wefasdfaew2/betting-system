@@ -282,10 +282,10 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 		this.isLoggin = true;
 		logger.info("loggin as " + this.username);
-		// while (true) {
-		// this.doPolling();
-		// Thread.sleep(1000);
-		// }
+		while (true) {
+			this.doPolling();
+			Thread.sleep(1000);
+		}
 
 	}
 

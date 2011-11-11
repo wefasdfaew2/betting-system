@@ -179,7 +179,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				if (!Odd.compareValue(new_odd, old_odd)) {
 					send_odds.put(new_odd.getId(), new_odd);
 				}
-
+			} else {
+				send_odds.put(e.getKey(), e.getValue().getOdd());
 			}
 		}
 		// update current map to update map
@@ -198,13 +199,12 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_6);
+		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
 		webClient.setThrowExceptionOnFailingStatusCode(false);
-		// webClient.setAjaxController(new
-		// NicelyResynchronizingAjaxController());
+		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
 
 		page = webClient.getPage("http://www.3in1bet.com");
 
@@ -311,7 +311,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		refresh_live
 				.setAttribute(
 						"onclick",
-						"var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		form.appendChild(refresh_live);
 		refresh_nonlive = odd_page.createElement("a");
 		refresh_nonlive
@@ -321,9 +321,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		form.appendChild(refresh_nonlive);
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
-			HtmlPage tmp_page = refresh_live.click();
+			refresh_live.click();
 			// Thread.sleep(sleep_time);
-			HtmlTable table = (HtmlTable) tmp_page.getElementById("tblData5");
+			HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
 			map_odds = this.util.getOddsFromThreeInOne(table);
 			// long endTime = System.currentTimeMillis();
 			// delay = endTime - startTime;
@@ -334,14 +334,13 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				|| this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
 			// non -live
-			HtmlPage tmp_page = null;
 			if (this.side == OddSide.NON_LIVE)
-				tmp_page = refresh_nonlive.click();
+				refresh_nonlive.click();
 			else if (this.side == OddSide.EARLY)
-				tmp_page = refresh_early.click();
+				refresh_early.click();
 			// Thread.sleep(sleep_time);
 
-			HtmlTable table_nonlive = (HtmlTable) tmp_page
+			HtmlTable table_nonlive = (HtmlTable) odd_page
 					.getElementById("tblData6");
 			map_odds = this.util.getOddsFromThreeInOne(table_nonlive);
 			// long endTime = System.currentTimeMillis();
