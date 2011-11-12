@@ -96,7 +96,8 @@ public class OddUtilities {
 							OddType.HDP_FULLTIME);
 
 					OddElement new_element = new OddElement(odd,
-							row.getCell(5), row.getCell(6));
+							(HtmlElement) row.getCell(5).cloneNode(true),
+							(HtmlElement) row.getCell(6).cloneNode(true));
 					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
@@ -113,7 +114,8 @@ public class OddUtilities {
 							OddType.OU_FULLTIME);
 
 					OddElement new_element = new OddElement(odd,
-							row.getCell(8), row.getCell(9));
+							(HtmlElement) row.getCell(8).cloneNode(true),
+							(HtmlElement) row.getCell(9).cloneNode(true));
 					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
@@ -132,7 +134,8 @@ public class OddUtilities {
 							OddType.HDP_HALFTIME);
 
 					OddElement new_element = new OddElement(odd,
-							row.getCell(11), row.getCell(12));
+							(HtmlElement) row.getCell(11).cloneNode(true),
+							(HtmlElement) row.getCell(12).cloneNode(true));
 					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
@@ -149,7 +152,8 @@ public class OddUtilities {
 							OddType.OU_HALFTIME);
 
 					OddElement new_element = new OddElement(odd,
-							row.getCell(14), row.getCell(15));
+							(HtmlElement) row.getCell(14).cloneNode(true),
+							(HtmlElement) row.getCell(15).cloneNode(true));
 					result.put(odd.getId(), new_element);
 				}
 			} catch (Exception e) {
@@ -251,7 +255,8 @@ public class OddUtilities {
 								odd.setOdd_away_xpath(((HtmlElement) cell4
 										.getFirstChild()).getAttribute("href"));
 								OddElement new_element = new OddElement(odd,
-										cell3, cell4);
+										(HtmlElement) cell3.cloneNode(true),
+										(HtmlElement) cell4.cloneNode(true));
 								result.put(odd.getId(), new_element);
 							}
 					}
@@ -288,7 +293,8 @@ public class OddUtilities {
 										.getFirstChild()).getAttribute("href"));
 
 								OddElement new_element = new OddElement(odd,
-										cell6, cell7);
+										(HtmlElement) cell6.cloneNode(true),
+										(HtmlElement) cell7.cloneNode(true));
 								result.put(odd.getId(), new_element);
 							}
 					}
@@ -326,7 +332,8 @@ public class OddUtilities {
 										.getFirstChild()).getAttribute("href"));
 
 								OddElement new_element = new OddElement(odd,
-										cell9, cell10);
+										(HtmlElement) cell9.cloneNode(true),
+										(HtmlElement) cell10.cloneNode(true));
 								result.put(odd.getId(), new_element);
 							}
 					}
@@ -362,7 +369,8 @@ public class OddUtilities {
 										.getFirstChild()).getAttribute("href"));
 
 								OddElement new_element = new OddElement(odd,
-										cell12, cell13);
+										(HtmlElement) cell12.cloneNode(true),
+										(HtmlElement) cell13.cloneNode(true));
 								result.put(odd.getId(), new_element);
 							}
 					}

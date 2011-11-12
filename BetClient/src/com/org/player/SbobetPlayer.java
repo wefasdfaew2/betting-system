@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.UnexpectedPage;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.FrameWindow;
@@ -173,13 +174,14 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				if (!Odd.compareValue(new_odd, old_odd)) {
 					send_odds.put(new_odd.getId(), new_odd);
 				}
-
+			} else {
+				send_odds.put(e.getKey(), e.getValue().getOdd());
 			}
 		}
 		// update current map to update map
 		this.current_map_odds = map_odds;
-		// if (send_odds.size() > 0)
-		p.sendMapMessage(send_odds, "sbobet");
+		if (send_odds.size() > 0)
+			p.sendMapMessage(send_odds, "sbobet");
 	}
 
 	public void loggout() throws JMSException {
@@ -196,10 +198,11 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	public void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
-		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_8);
+		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
 		webClient.setThrowExceptionOnScriptError(false);
+		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
 
 		page = webClient.getPage("http://www.sbobetasia.com/");
 
@@ -307,7 +310,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				table = (HtmlTable) table.getBodies().get(0).getRows().get(0)
 						.getCell(0).getFirstChild();
 
-				map_odds.putAll(this.util.getOddsFromSobet(table));
+				map_odds = this.util.getOddsFromSobet(table);
 
 			}
 		}
@@ -327,7 +330,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 						"events").getFirstChild();
 				table_nonlive = (HtmlTable) table_nonlive.getBodies().get(0)
 						.getRows().get(0).getCell(0).getFirstChild();
-				map_odds.putAll(this.util.getOddsFromSobet(table_nonlive));
+				map_odds = this.util.getOddsFromSobet(table_nonlive);
 			}
 		}
 
@@ -364,7 +367,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		try {
 			// System.out.println(((TextMessage) message).getText());
 			if (message instanceof ObjectMessage) {
-//				logger.info("sbo received");
+				// logger.info("sbo received");
 				ObjectMessage mes = (ObjectMessage) message;
 				Odd odd = (Odd) mes.getObject();
 				boolean is_home = mes.getBooleanProperty("home");
@@ -421,7 +424,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			// logger.info(odd_element.asXml());
 
 			odd_element.click();
-			Thread.sleep(100);
+			Thread.sleep(50);
 			try {
 				ticket_page = (HtmlPage) this.webClient.getWebWindowByName(
 						"ticketFrame").getEnclosedPage();
@@ -439,7 +442,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				// logger.info(e.asXml());
 				ticket_div.appendChild(e);
 				e.click();
-				Thread.sleep(100);
+				Thread.sleep(50);
 			} catch (Exception e) {
 				logger.info("ticket openned");
 			}
@@ -452,7 +455,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			// fill the stake
 			HtmlElement stake_input = ticket_div.getElementById("stake");
 			stake_input.setAttribute("value", "10");
-			
+
 			// virtual element to place bet
 			// if (getEquals(submit_odd, bet_odd)) {
 			// logger.info("match odd accept now bet ha ha!");
@@ -460,6 +463,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			e.setAttribute("onclick", "return placebet();");
 			ticket_div.appendChild(e);
 			e.click();
+			Thread.sleep(50);
 			logger.info(ticket_div.asText());
 			// }
 
