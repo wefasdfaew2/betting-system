@@ -391,6 +391,13 @@ public class SbobetPlayer extends Thread implements MessageListener {
 				if (mes.getText().equals("UPDATE")) {
 					Thread t = new Thread(this);
 					t.start();
+				} else if (mes.getText().equals("OK")) {
+					try {
+						this.doBet();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						this.logger.info(StackTraceUtil.getStackTrace(e));
+					}
 				} else {
 					this.doPolling();
 					for (OddElement e : this.current_map_odds.values()) {
@@ -456,15 +463,6 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			HtmlElement stake_input = ticket_div.getElementById("stake");
 			stake_input.setAttribute("value", "10");
 
-			// virtual element to place bet
-			// if (getEquals(submit_odd, bet_odd)) {
-			// logger.info("match odd accept now bet ha ha!");
-			HtmlElement e = ticket_div.createElement("a");
-			e.setAttribute("onclick", "return placebet();");
-			ticket_div.appendChild(e);
-			e.click();
-			Thread.sleep(50);
-			logger.info(ticket_div.asText());
 			// }
 
 		} catch (Exception e) {
@@ -473,6 +471,20 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			logger.error(StackTraceUtil.getStackTrace(e));
 		}
 
+	}
+
+	private void doBet() throws IOException, InterruptedException {
+		// virtual element to place bet
+		// if (getEquals(submit_odd, bet_odd)) {
+		// logger.info("match odd accept now bet ha ha!");
+		ticket_div = (HtmlPage) this.webClient.getWebWindowByName("leftFrame")
+				.getEnclosedPage();
+		HtmlElement e = ticket_div.createElement("a");
+		e.setAttribute("onclick", "return placebet();");
+		ticket_div.appendChild(e);
+		e.click();
+		Thread.sleep(50);
+		logger.info(ticket_div.asText());
 	}
 
 	// private boolean getEquals(String o1, String o2) {
