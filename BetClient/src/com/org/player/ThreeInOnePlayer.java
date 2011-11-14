@@ -297,10 +297,10 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		logger.info("Logged in as " + this.username);
 
 		// while (true) {
-		// // long a = System.currentTimeMillis();
+		// long a = System.currentTimeMillis();
 		// this.doPolling();
-		// // long b = System.currentTimeMillis();
-		// // logger.info(b - a);
+		// long b = System.currentTimeMillis();
+		// logger.info(b - a);
 		// Thread.sleep(2000);
 		// }
 		// webClient.closeAllWindows();
@@ -316,23 +316,23 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// live
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
-//		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
+		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
 		// virtual button to click refresh, call javascript skip check time
-//		refresh_live = odd_page.createElement("a");
-//		refresh_live
-//				.setAttribute(
-//						"onclick",
-//						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-//		form.appendChild(refresh_live);
-//		refresh_nonlive = odd_page.createElement("a");
-//		refresh_nonlive
-//				.setAttribute(
-//						"onclick",
-//						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-//		form.appendChild(refresh_nonlive);
+		refresh_live = odd_page.createElement("a");
+		refresh_live
+				.setAttribute(
+						"onclick",
+						"var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+		form.appendChild(refresh_live);
+		// refresh_nonlive = odd_page.createElement("a");
+		// refresh_nonlive
+		// .setAttribute(
+		// "onclick",
+		// "RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+		// form.appendChild(refresh_nonlive);
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
-			// refresh_live.click();
+			refresh_live.click();
 
 			// Thread.sleep(sleep_time);
 			HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
@@ -476,10 +476,23 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			// logger.info(odd_element.asXml());
 			odd_element.click();
 			this.webClient.waitForBackgroundJavaScript(100);
-			float real_odd = Float.parseFloat(ticket_page.getElementById(
-					"lb_bet_odds").asText());
+			String odd_string = "";
+			float real_odd = 0;
+			long start = System.currentTimeMillis();
+			for (int i = 0; i < 15; i++) {
+				odd_string = ticket_page.getElementById("lb_bet_odds").asText();
+				if (!odd_string.isEmpty()) {
+					real_odd = Float.parseFloat(odd_string);
+					break;
+				} else {
+					synchronized (ticket_page) {
+						ticket_page.wait(50);
+					}
+				}
+			}
+			long end = System.currentTimeMillis();
+			logger.info("delay is :" + (end - start));
 			logger.info("real odd is : " + real_odd);
-			logger.info(ticket_page.asText());
 			if (real_odd * odd_value > 0 && real_odd < odd_value)
 				return;
 			if (real_odd > 0 && odd_value < 0)
