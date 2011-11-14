@@ -296,6 +296,14 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		this.isLoggin = true;
 		logger.info("Logged in as " + this.username);
 
+		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
+		// virtual button to click refresh, call javascript skip check time
+		refresh_live = odd_page.createElement("a");
+		refresh_live
+				.setAttribute("onclick",
+						"secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+		form.appendChild(refresh_live);
+		refresh_live.click();
 		// while (true) {
 		// long a = System.currentTimeMillis();
 		// this.doPolling();
@@ -316,14 +324,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// live
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
-		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
-		// virtual button to click refresh, call javascript skip check time
-		refresh_live = odd_page.createElement("a");
-		refresh_live
-				.setAttribute(
-						"onclick",
-						"var data = GetOddsParams(5, LastRunningVersion);var url = GetOddsUrl();callWebService(url, data, onLoadedIncRunningData, onLoadingDataException);secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-		form.appendChild(refresh_live);
+
 		// refresh_nonlive = odd_page.createElement("a");
 		// refresh_nonlive
 		// .setAttribute(
@@ -332,7 +333,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// form.appendChild(refresh_nonlive);
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
-			refresh_live.click();
+			// refresh_live.click();
 
 			// Thread.sleep(sleep_time);
 			HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
@@ -490,9 +491,14 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 					}
 				}
 			}
+			if (real_odd == 0)
+				return;
 			long end = System.currentTimeMillis();
 			logger.info("delay is :" + (end - start));
 			logger.info("real odd is : " + real_odd);
+			logger.info("real match is "
+					+ ticket_page.getElementById("lb_home_team").asText() + ":"
+					+ ticket_page.getElementById("lb_away_team").asText());
 			if (real_odd * odd_value > 0 && real_odd < odd_value)
 				return;
 			if (real_odd > 0 && odd_value < 0)
