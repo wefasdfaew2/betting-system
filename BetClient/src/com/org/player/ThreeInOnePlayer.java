@@ -189,8 +189,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		}
 		// update current map to update map
 		this.current_map_odds = map_odds;
-		// if (send_odds.size() > 0)
-		p.sendMapMessage(send_odds, "3in");
+		if (send_odds.size() > 0)
+			p.sendMapMessage(send_odds, "3in");
 	}
 
 	public void witeStringtoFile(String content, String file)
@@ -296,13 +296,13 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		this.isLoggin = true;
 		logger.info("Logged in as " + this.username);
 
-		while (true) {
-			// long a = System.currentTimeMillis();
-			this.doPolling();
-			// long b = System.currentTimeMillis();
-			// logger.info(b - a);
-			Thread.sleep(2000);
-		}
+		// while (true) {
+		// // long a = System.currentTimeMillis();
+		// this.doPolling();
+		// // long b = System.currentTimeMillis();
+		// // logger.info(b - a);
+		// Thread.sleep(2000);
+		// }
 		// webClient.closeAllWindows();
 	}
 
@@ -316,47 +316,47 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// live
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
-		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
+//		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
 		// virtual button to click refresh, call javascript skip check time
-		refresh_live = odd_page.createElement("a");
-		refresh_live
-				.setAttribute(
-						"onclick",
-						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-		form.appendChild(refresh_live);
-		refresh_nonlive = odd_page.createElement("a");
-		refresh_nonlive
-				.setAttribute(
-						"onclick",
-						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-		form.appendChild(refresh_nonlive);
+//		refresh_live = odd_page.createElement("a");
+//		refresh_live
+//				.setAttribute(
+//						"onclick",
+//						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+//		form.appendChild(refresh_live);
+//		refresh_nonlive = odd_page.createElement("a");
+//		refresh_nonlive
+//				.setAttribute(
+//						"onclick",
+//						"RefreshIncrement();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+//		form.appendChild(refresh_nonlive);
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
-			long startTime = System.currentTimeMillis();
-//			refresh_live.click();
+			// long startTime = System.currentTimeMillis();
+			// refresh_live.click();
 
 			// Thread.sleep(sleep_time);
 			HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
 
 			map_odds = this.util.getOddsFromThreeInOne(table);
-			long endTime = System.currentTimeMillis();
-			long delay = endTime - startTime;
-			logger.info(delay);
-			logger.info(map_odds);
+			// long endTime = System.currentTimeMillis();
+			// long delay = endTime - startTime;
+			// logger.info(delay);
+			// logger.info(map_odds);
 			// String d = "" + delay;
 
 		}
 		if (this.side == OddSide.NON_LIVE || this.side == OddSide.EARLY
 				|| this.side == OddSide.TODAY) {
-			long startTime = System.currentTimeMillis();
+			// long startTime = System.currentTimeMillis();
 			// non -live
 			// Thread.sleep(sleep_time);
 
 			HtmlTable table_nonlive = (HtmlTable) odd_page
 					.getElementById("tblData6");
 			map_odds = this.util.getOddsFromThreeInOne(table_nonlive);
-			long endTime = System.currentTimeMillis();
-			long delay = endTime - startTime;
-			logger.info(delay);
+			// long endTime = System.currentTimeMillis();
+			// long delay = endTime - startTime;
+			// logger.info(delay);
 			// String d = "" + delay;
 			// p.sendMessage(d);
 		}
