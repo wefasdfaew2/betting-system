@@ -504,6 +504,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			logger.info("real match is "
 					+ ticket_page.getElementById("lb_home_team").asText() + ":"
 					+ ticket_page.getElementById("lb_away_team").asText());
+			logger.info("real handicap is : "
+					+ ticket_page.getElementById("lb_hdpball"));
 			if (real_odd * odd_value > 0 && real_odd < odd_value)
 				return;
 			if (real_odd > 0 && odd_value < 0)
