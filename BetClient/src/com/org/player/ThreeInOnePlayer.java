@@ -31,6 +31,7 @@ import org.apache.xalan.xsltc.compiler.sym;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
+import com.gargoylesoftware.htmlunit.ScriptResult;
 import com.gargoylesoftware.htmlunit.UnexpectedPage;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.FrameWindow;
@@ -79,12 +80,12 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				OddSide side = OddSide.LIVE;
 				ThreeInOnePlayer client = new ThreeInOnePlayer(argv[0],
 						argv[1], side);
-				try {
-					client.startConnection();
-				} catch (JMSException e) {
-					client.logger.info("error establish JMS connection");
-					return;
-				}
+//				try {
+//					client.startConnection();
+//				} catch (JMSException e) {
+//					client.logger.info("error establish JMS connection");
+//					return;
+//				}
 
 				client.homePage();
 				Thread.sleep(1000 * 60 * 60 * 1);// play for 2 hours
@@ -200,7 +201,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		op.close();
 	}
 
-	private synchronized void homePage() throws FailingHttpStatusCodeException,
+	private void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
 			JMSException {
 		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_6);
@@ -296,25 +297,26 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		this.isLoggin = true;
 		logger.info("Logged in as " + this.username);
 
-		HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
+		// HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
 		// virtual button to click refresh, call javascript skip check time
-		refresh_live = odd_page.createElement("a");
-		refresh_live
-				.setAttribute(
-						"onclick",
-						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-		form.appendChild(refresh_live);
-
+		// refresh_live = odd_page.createElement("a");
+		// refresh_live
+		// .setAttribute(
+		// "onclick",
+		// "RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+		// form.appendChild(refresh_live);
+		//
 		while (true) {
 			long a = System.currentTimeMillis();
 			// refresh_live.click();
-			this.odd_page
-					.executeJavaScript("RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+			ScriptResult result = this.odd_page
+					.executeJavaScript("var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();;secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+			
 			long b = System.currentTimeMillis();
 			this.doPolling();
 
 			logger.info(this.username + ":" + (b - a));
-			// Thread.sleep(2000);
+//			Thread.sleep(2000);
 		}
 		// webClient.closeAllWindows();
 	}
@@ -339,7 +341,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
 			// refresh_live.click();
-
+			this.odd_page
+					.executeJavaScript("LoadIncRunningData();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 			// Thread.sleep(sleep_time);
 			HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
 
@@ -437,8 +440,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
 				if (mes.getText().equals("UPDATE")) {
-					Thread t = new Thread(this);
-					t.start();
+					this.run();
 				} else {
 					// this for debug only
 					this.placeBet(mes.getText(), 0.1f);
@@ -505,7 +507,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 					+ ticket_page.getElementById("lb_home_team").asText() + ":"
 					+ ticket_page.getElementById("lb_away_team").asText());
 			logger.info("real handicap is : "
-					+ ticket_page.getElementById("lb_hdpball"));
+					+ ticket_page.getElementById("lb_hdpball").asText());
 			if (real_odd * odd_value > 0 && real_odd < odd_value)
 				return;
 			if (real_odd > 0 && odd_value < 0)
