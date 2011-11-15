@@ -300,17 +300,19 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// virtual button to click refresh, call javascript skip check time
 		refresh_live = odd_page.createElement("a");
 		refresh_live
-				.setAttribute("onclick",
-						"secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+				.setAttribute(
+						"onclick",
+						"RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		form.appendChild(refresh_live);
-		refresh_live.click();
-		// while (true) {
-		// long a = System.currentTimeMillis();
-		// this.doPolling();
-		// long b = System.currentTimeMillis();
-		// logger.info(b - a);
-		// Thread.sleep(2000);
-		// }
+
+		while (true) {
+			long a = System.currentTimeMillis();
+			refresh_live.click();
+			this.doPolling();
+			long b = System.currentTimeMillis();
+			logger.info(b - a);
+			Thread.sleep(2000);
+		}
 		// webClient.closeAllWindows();
 	}
 
