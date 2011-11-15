@@ -307,11 +307,14 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 		while (true) {
 			long a = System.currentTimeMillis();
-			refresh_live.click();
-			this.doPolling();
+			// refresh_live.click();
+			this.odd_page
+					.executeJavaScript("RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 			long b = System.currentTimeMillis();
-			logger.info(b - a);
-			Thread.sleep(2000);
+			this.doPolling();
+
+			logger.info(this.username + ":" + (b - a));
+			// Thread.sleep(2000);
 		}
 		// webClient.closeAllWindows();
 	}
