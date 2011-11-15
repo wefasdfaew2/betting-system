@@ -14,6 +14,8 @@
 	href="css/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript"
+	src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
 <script type="text/javascript">
 	function reloadImg(id) {
 		var obj = document.getElementById(id);
@@ -107,7 +109,7 @@
 	function cancelActivityRefresh() {
 		clearInterval(timer);
 	}
-
+	
 	$(document).ready(function() {
 		var content = $("#divResult1");
 		startActivityRefresh();
@@ -116,6 +118,8 @@
 	});
 
 	$(function() {
+		// theme switcher
+		$('#switcher').themeswitcher()
 		// Radio
 		$("#radio").buttonset();
 
@@ -279,240 +283,268 @@ ul#icons span.ui-icon {
 </style>
 </head>
 <body>
-<table width=100%>
-	<tr>
-		<td>
-		<h1>Welcome to Bet Agent Manager!</h1>
-		</td>
-		<td align="right">
-		<button class="logoutBtn" onclick="logOut()">Log out</button>
-		</td>
-	</tr>
+	<div id="switcher"></div>
+	<table width=100%>
+		<tr>
+			<td>
+				<h1>Welcome to Bet Agent Manager!</h1>
+			</td>
+			<td align="right">
+				<button class="logoutBtn" onclick="logOut()">Log out</button>
+			</td>
+		</tr>
 
-</table>
-<!-- Tabs -->
+	</table>
+	<!-- Tabs -->
 
-<table width=100%>
-	<tr>
-		<td width=30%>
-		<h2 class="demoHeaders">Login</h2>
-		</td>
-		<td align="left">
-		<h2 class="demoHeaders"></h2>
-		</td>
-	</tr>
-	<tr height=200px>
-		<td valign="top"><!-- Tabs -->
-		<div id="tabs">
-		<ul>
-			<li><a href="#tabs-1">SboBet</a></li>
-			<li><a href="#tabs-2">3in1</a></li>
-			<li><a href="#tabs-3">ibet</a></li>
-			<li><a href="#tabs-4">Result</a></li>
-		</ul>
-		<div id="tabs-1"><!-- Start login Form-->
-		<table width="300" cellspacing="0" cellpadding="2" border="0"
-			align="center">
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litName">Username:</td>
-				<td style="vertical-align: top; line-height: 22px; width: 30px;"><input
-					type="text" class="Textfield" id="username" name="username"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: right;"><span
-					id="litPwd">Password</span> :</td>
-				<td style="vertical-align: top; line-height: 22px;"><input
-					type="password" class="Textfield" id="password" name="password">
-				</td>
-
-
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: right;"><span
-					id="litFrom">From</span> :</td>
-				<td style="vertical-align: top; line-height: 22px;"><input
-					type="text" id="datepickerfromSbo" name="txtFrom"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: right;"><span
-					id="litFrom">To</span> :</td>
-				<td style="vertical-align: top; line-height: 22px;"><input
-					type="text" id="datepickertoSbo" name="txtTo"></td>
-			</tr>
-
-			<tr>
-				<td></td>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: left;">
-				<input type="submit" style="cursor: pointer;"
-					onclick="disableButton();" class="button" value="Sign In"
-					name="btnSubmit" id="btnSubmit">
-				<div class="loginResult"></div>
-				</td>
-			</tr>
-			</tbody>
-		</table>
-		<!-- End login Form--></div>
-		<div id="tabs-2"></div>
-		<div id="tabs-3"><!-- Start login Form-->
-		<table width="300" cellspacing="0" cellpadding="2" border="0"
-			align="center">
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litibetName">Username:</td>
-				<td style="vertical-align: top; line-height: 22px; width: 30px;"><input
-					type="text" class="Textfield" id="ibetusername" name="ibetusername"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: right;"><span
-					id="litibetPwd">Password</span> :</td>
-				<td style="vertical-align: top; line-height: 22px;"><input
-					type="ibetpassword" class="Textfield" id="ibetpassword"
-					name="ibetpassword"></td>
+	<table width=100%>
+		<tr>
+			<td width=30%>
+				<h2 class="demoHeaders">Login</h2>
+			</td>
+			<td align="left">
+				<h2 class="demoHeaders"></h2>
+			</td>
+		</tr>
+		<tr height=200px>
+			<td valign="top">
+				<!-- Tabs -->
+				<div id="tabs">
+					<ul>
+						<li><a href="#tabs-1">SboBet</a></li>
+						<li><a href="#tabs-2">3in1</a></li>
+						<li><a href="#tabs-3">ibet</a></li>
+						<li><a href="#tabs-4">Result</a></li>
+					</ul>
+					<div id="tabs-1">
+						<!-- Start login Form-->
+						<table width="300" cellspacing="0" cellpadding="2" border="0"
+							align="center">
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litName">Username: 
+								</td>
+								<td style="vertical-align: top; line-height: 22px; width: 30px;"><input
+									type="text" class="Textfield" id="username" name="username">
+								</td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: right;"><span
+									id="litPwd">Password</span> :</td>
+								<td style="vertical-align: top; line-height: 22px;"><input
+									type="password" class="Textfield" id="password" name="password">
+								</td>
 
 
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: right;"><span
-					id="litibetFrom">From</span> :</td>
-				<td style="vertical-align: top; line-height: 22px;"><input
-					type="text" id="datepickerfromIbet" name="txtibetFrom"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: right;"><span
-					id="litibetTo">To</span> :</td>
-				<td style="vertical-align: top; line-height: 22px;"><input
-					type="text" id="datepickertoIbet" name="txtibetTo"></td>
-			</tr>
-			<tr>
-				<td><img id="imgIbetCaptcha" alt="captcha" src="IbetCaptcha"
-					align=right onclick="return reloadImg('imgIbetCaptcha');"></td>
-				<td><input type="text" id="ibetCaptcha" name="ibetCaptcha">
-				</td>
-			</tr>
-			<tr>
-				<td></td>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: left;">
-				<input type="submit" style="cursor: pointer;"
-					onclick="disableButtonIbet();" class="button" value="Sign In"
-					name="btnIbetSubmit" id="btnIbetSubmit">
-				<div class="loginIbetResult"></div>
-				</td>
-			</tr>
-			</tbody>
-		</table>
-		<!-- End login Form--></div>
-		<div id="tabs-4">
-		<table width=100% cellspacing="0" cellpadding="2" border="0"
-			align="center">
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litip1">&nbsp&nbsp&nbsp&nbsp&nbspIp1</span><span
-					onclick="alert('B01');">:</span></td>
-				<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
-					type="text" class="Textfield" id="ip1" name="ip1"></td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: right;"><span
+									id="litFrom">From</span> :</td>
+								<td style="vertical-align: top; line-height: 22px;"><input
+									type="text" id="datepickerfromSbo" name="txtFrom"></td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: right;"><span
+									id="litFrom">To</span> :</td>
+								<td style="vertical-align: top; line-height: 22px;"><input
+									type="text" id="datepickertoSbo" name="txtTo"></td>
+							</tr>
 
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litip2">ip2</span> <span onclick="alert('B01');">:</span></td>
-				<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
-					type="text" class="Textfield" id="ip2" name="ip2"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litip3">ip3</span> <span onclick="alert('B01');">:</span></td>
-				<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
-					type="text" class="Textfield" id="ip3" name="ip3"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litip4">ip4</span> <span onclick="alert('B01');">:</span></td>
-				<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
-					type="text" class="Textfield" id="ip4" name="ip4"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litDate">Date</span> <span onclick="alert('B01');">:</span></td>
-				<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
-					type="text" class="Textfield" id="date" name="date"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litDate">From Date</span> <span onclick="alert('B01');">:</span></td>
-				<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
-					type="text" class="Textfield" id="datefrom" name="datefrom"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
-					id="litDate">To Date</span> <span onclick="alert('B01');">:</span></td>
-				<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
-					type="text" class="Textfield" id="dateto" name="dateto"></td>
-			</tr>
-			<tr>
-				<td></td>
-				<td><input type="submit" style="cursor: pointer;"
-					onclick="findDB()" class="btnFind" value="Find" name="btnFind"
-					id="btnFind"></td>
-			</tr>
-			<tr>
-				<td
-					style="vertical-align: top; line-height: 22px; text-align: left;"
-					colspan="2">
+							<tr>
+								<td></td>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: left;">
+									<input type="submit" style="cursor: pointer;"
+									onclick="disableButton();" class="button" value="Sign In"
+									name="btnSubmit" id="btnSubmit">
+									<div class="loginResult"></div>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+						<!-- End login Form-->
+					</div>
+					<div id="tabs-2"></div>
+					<div id="tabs-3">
+						<!-- Start login Form-->
+						<table width="300" cellspacing="0" cellpadding="2" border="0"
+							align="center">
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litibetName">Username: 
+								</td>
+								<td style="vertical-align: top; line-height: 22px; width: 30px;"><input
+									type="text" class="Textfield" id="ibetusername"
+									name="ibetusername"></td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: right;"><span
+									id="litibetPwd">Password</span> :</td>
+								<td style="vertical-align: top; line-height: 22px;"><input
+									type="ibetpassword" class="Textfield" id="ibetpassword"
+									name="ibetpassword"></td>
 
-				<div id="radio" align="center"><input type="radio" id="radio1"
-					name="radio" value="all" /><label for="radio1">All</label> <input
-					type="radio" id="radio2" name="radio" checked="checked"
-					value="sbobet" /><label for="radio2">sbobet</label> <input
-					type="radio" id="radio3" name="radio" value="3in1" /><label
-					for="radio3">3in1</label> <input type="radio" id="radio4"
-					name="radio" value="ibet" /><label for="radio4">ibet</label></div>
-				</td>
-			</tr>
-			</tbody>
-		</table>
-		</div>
-		</div>
-		</td>
-		<td valign="top"><!-- Accordion -->
-		<div id="accordion">
-		<div>
-		<h3><a href="#">Sbobet</a></h3>
-		<div id="divResult1">Sbobet result here</div>
-		</div>
-		<div>
-		<h3><a href="#">3in1</a></h3>
-		<div id="divResult2">3in1 result here</div>
-		</div>
-		<div>
-		<h3><a href="#">ibet</a></h3>
-		<div id="divResult3">ibet result here</div>
-		</div>
-		<div>
-		<h3><a href="#">console</a></h3>
-		<div id="divResult4">console output of server</div>
-		</div>
-		</div>
-		</td>
-	</tr>
-</table>
+
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: right;"><span
+									id="litibetFrom">From</span> :</td>
+								<td style="vertical-align: top; line-height: 22px;"><input
+									type="text" id="datepickerfromIbet" name="txtibetFrom">
+								</td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: right;"><span
+									id="litibetTo">To</span> :</td>
+								<td style="vertical-align: top; line-height: 22px;"><input
+									type="text" id="datepickertoIbet" name="txtibetTo"></td>
+							</tr>
+							<tr>
+								<td><img id="imgIbetCaptcha" alt="captcha"
+									src="IbetCaptcha" align=right
+									onclick="return reloadImg('imgIbetCaptcha');"></td>
+								<td><input type="text" id="ibetCaptcha" name="ibetCaptcha">
+								</td>
+							</tr>
+							<tr>
+								<td></td>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: left;">
+									<input type="submit" style="cursor: pointer;"
+									onclick="disableButtonIbet();" class="button" value="Sign In"
+									name="btnIbetSubmit" id="btnIbetSubmit">
+									<div class="loginIbetResult"></div>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+						<!-- End login Form-->
+					</div>
+					<div id="tabs-4">
+						<table width=100% cellspacing="0" cellpadding="2" border="0"
+							align="center">
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litip1">&nbsp&nbsp&nbsp&nbsp&nbspIp1</span><span
+									onclick="alert('B01');">:</span></td>
+								<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
+									type="text" class="Textfield" id="ip1" name="ip1"></td>
+
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litip2">ip2</span> <span onclick="alert('B01');">:</span></td>
+								<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
+									type="text" class="Textfield" id="ip2" name="ip2"></td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litip3">ip3</span> <span onclick="alert('B01');">:</span></td>
+								<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
+									type="text" class="Textfield" id="ip3" name="ip3"></td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litip4">ip4</span> <span onclick="alert('B01');">:</span></td>
+								<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
+									type="text" class="Textfield" id="ip4" name="ip4"></td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litDate">Date</span> <span onclick="alert('B01');">:</span>
+								</td>
+								<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
+									type="text" class="Textfield" id="date" name="date"></td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litDate">From Date</span> <span onclick="alert('B01');">:</span>
+								</td>
+								<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
+									type="text" class="Textfield" id="datefrom" name="datefrom">
+								</td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; width: 10px; text-align: right;"><span
+									id="litDate">To Date</span> <span onclick="alert('B01');">:</span>
+								</td>
+								<td style="vertical-align: top; line-height: 22px; width: 50px;"><input
+									type="text" class="Textfield" id="dateto" name="dateto">
+								</td>
+							</tr>
+							<tr>
+								<td></td>
+								<td><input type="submit" style="cursor: pointer;"
+									onclick="findDB()" class="btnFind" value="Find" name="btnFind"
+									id="btnFind"></td>
+							</tr>
+							<tr>
+								<td
+									style="vertical-align: top; line-height: 22px; text-align: left;"
+									colspan="2">
+
+									<div id="radio" align="center">
+										<input type="radio" id="radio1" name="radio" value="all" /><label
+											for="radio1">All</label> <input type="radio" id="radio2"
+											name="radio" checked="checked" value="sbobet" /><label
+											for="radio2">sbobet</label> <input type="radio" id="radio3"
+											name="radio" value="3in1" /><label for="radio3">3in1</label>
+										<input type="radio" id="radio4" name="radio" value="ibet" /><label
+											for="radio4">ibet</label>
+									</div>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</td>
+			<td valign="top">
+				<!-- Accordion -->
+				<div id="accordion">
+					<div>
+						<h3>
+							<a href="#">Sbobet</a>
+						</h3>
+						<div id="divResult1">Sbobet result here</div>
+					</div>
+					<div>
+						<h3>
+							<a href="#">3in1</a>
+						</h3>
+						<div id="divResult2">3in1 result here</div>
+					</div>
+					<div>
+						<h3>
+							<a href="#">ibet</a>
+						</h3>
+						<div id="divResult3">ibet result here</div>
+					</div>
+					<div>
+						<h3>
+							<a href="#">console</a>
+						</h3>
+						<div id="divResult4">console output of server</div>
+					</div>
+				</div>
+			</td>
+		</tr>
+	</table>
 </body>
 </html>
 
