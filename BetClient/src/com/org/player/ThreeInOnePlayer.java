@@ -379,14 +379,26 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 											.get(id)
 											.getHandicap()
 											.equals(sub_array.getDouble(4) + "")) {
+										logger.info("update handicap");
 										logger.info(sub_array);
 										logger.info(id_map.get(id));
 										// remove old odd
 										send_odds.put(id_map.get(id).getId(),
 												null);
 										// update to new handicap
-										id_map.get(id).setHandicap(
-												sub_array.getDouble(4) + "");
+										// check if negative handicap
+										boolean is_negative = sub_array
+												.getLong(5) == 0;
+
+										String handicap = sub_array
+												.getDouble(4) + "";
+										if (is_negative
+												&& sub_array.getDouble(4) > 0
+												&& id2 != 33 && id2 != 43)
+											handicap = "-"
+													+ sub_array.getDouble(4);
+										id_map.get(id).setHandicap(handicap);
+										logger.info(id_map.get(id));
 										// send new handicap odd
 										send_odds.put(id_map.get(id).getId(),
 												id_map.get(id));
@@ -396,6 +408,24 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 									// update handicap but not found key
 									logger.info("update handicap but not found key");
 									logger.info(sub_array);
+									// add new entry
+									OddType type = null;
+									if (id2 == 28)
+										type = OddType.HDP_FULLTIME;
+									if (id2 == 33)
+										type = OddType.OU_FULLTIME;
+									if (id2 == 38)
+										type = OddType.HDP_HALFTIME;
+									if (id2 == 43)
+										type = OddType.OU_HALFTIME;
+									TeamHeader header = header_map
+											.get(id1 + "");
+									Odd new_odd = new Odd(header.getTeam1(),
+											header.getTeam2(),
+											sub_array.getDouble(4) + "", -999,
+											-999, type);
+									id_map.put(id, new_odd);
+									logger.info(new_odd);
 								}
 
 							} else if (id2 == 51 || id2 == 54) {
@@ -499,13 +529,13 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 							} else {
 								// 8 element but not handle yet
-//								logger.info("8 element but not handle yet");
-//								logger.info(sub_array);
+								// logger.info("8 element but not handle yet");
+								// logger.info(sub_array);
 							}
 						} else {
 							// not 8 element
-//							logger.info("not 8 element");
-//							logger.info(sub_array);
+							// logger.info("not 8 element");
+							// logger.info(sub_array);
 						}
 
 					}

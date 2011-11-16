@@ -170,6 +170,70 @@ public class OddUtilities {
 		return ids[ids.length - 1];
 	}
 
+	public HashMap<String, TeamHeader> getTeamHeaderFromThreeInOne(
+			HtmlTable odd_table) {
+		HashMap<String, TeamHeader> result = new HashMap<String, TeamHeader>();
+
+		HtmlTableBody body;
+		try {
+			body = odd_table.getBodies().get(0);
+		} catch (Exception e) {
+
+			// TODO: handle exception
+			return result;
+		}
+		for (HtmlTableRow row : body.getRows()) {
+			// only process row with first cell contain two span (contain odd)
+			HtmlTableCell cell = null;
+			boolean negative_handicap = false;
+			String team1 = "";
+			String team2 = "";
+			String id = get_match_Id(row);
+			try {
+				cell = row.getCell(0);
+			} catch (Exception e) {
+				// TODO: handle exception
+				// e.printStackTrace();
+				continue;
+			}
+			if (cell.getClass()
+					.getName()
+					.equals("com.gargoylesoftware.htmlunit.html.HtmlTableDataCell")
+					&& cell.getColumnSpan() == 1 && cell.getRowSpan() == 1) {
+
+				try {
+					boolean home = true;
+					for (HtmlElement e : row.getCell(1).getChildElements()) {
+						if ((e instanceof HtmlSpan) && !e.asText().equals("")
+								&& e.hasAttribute("id")
+								&& (!e.hasAttribute("style"))) {
+							if (home) {
+								team1 = e.asText();
+								home = false;
+							} else {
+								team2 = e.asText();
+								// if team 2 is handicap
+								if (e.getAttribute("class").equals("red")) {
+									negative_handicap = true;
+								}
+							}
+						}
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+					// e.printStackTrace();
+					continue;
+				}
+				team1 = team1.trim().toUpperCase();
+				team2 = team2.trim().toUpperCase();
+				if (team1.equals("") || team2.equals(""))
+					continue;
+				result.put(id, new TeamHeader(team1, team2, negative_handicap));
+			}
+		}
+		return result;
+	}
+
 	public HashMap<String, OddElement> getOddsFromThreeInOne(HtmlTable odd_table) {
 		HashMap<String, OddElement> result = new HashMap<String, OddElement>();
 		HtmlTableBody body;
