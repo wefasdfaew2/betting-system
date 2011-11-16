@@ -24,6 +24,7 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.xalan.xsltc.compiler.sym;
@@ -53,6 +54,8 @@ import com.org.odd.OddElement;
 import com.org.odd.OddSide;
 import com.org.odd.OddType;
 import com.org.odd.OddUtilities;
+import com.org.odd.TeamHeader;
+import com.org.odd.TeamType;
 
 public class ThreeInOnePlayer extends Thread implements MessageListener {
 	String url = JMSConfiguration.getHostURL();
@@ -317,6 +320,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		HashMap<String, OddElement> map_odds = this.util
 				.getOddsFromThreeInOne(table);
 		HashMap<String, Odd> id_map = this.convertTable(map_odds);
+		HashMap<String, TeamHeader> header_map = this.util
+				.getTeamHeaderFromThreeInOne(table);
 
 		while (true)
 			try {
@@ -341,12 +346,12 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 						if (sub_array.length() == 8) {
 							long id1 = sub_array.getLong(0);
 							long id2 = sub_array.getLong(2);
-							if (id2 >= 40)
-								id1++;
 
 							// update odd value
 							if (id2 == 30 || id2 == 35 || id2 == 40
 									|| id2 == 45) {
+								if (id2 >= 40)
+									id1++;
 								String id = id1 + "_" + id2;
 								if (id_map.containsKey(id)) {
 									// logger.info(sub_array);
@@ -365,9 +370,11 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 							} else if (id2 == 28 || id2 == 33 || id2 == 38
 									|| id2 == 43) {
+								if (id2 >= 38)
+									id1++;
 								String id = id1 + "_" + (id2 + 2);
 								if (id_map.containsKey(id)) {
-									// change handicap
+									// change handicap if not equal
 									if (!id_map
 											.get(id)
 											.getHandicap()
@@ -391,14 +398,114 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 									logger.info(sub_array);
 								}
 
+							} else if (id2 == 51 || id2 == 54) {
+								// special update lol
+								// add new 4 odds lol
+
+								String[] elements = StringUtils.split(
+										sub_array.getString(3), "|");
+								// String team1 = elements[];
+								// logger.info("special update lol");
+
+								String id = elements[15].trim();
+								String new_id1 = id + "_30";
+								String new_id2 = id + "_35";
+								String new_id3 = (Long.parseLong(id) + 1)
+										+ "_40";
+								String new_id4 = (Long.parseLong(id) + 1)
+										+ "_45";
+								boolean is_negative = !elements[58]
+										.equals("True");
+
+								String team1 = elements[18].toUpperCase();
+								String team2 = elements[25].toUpperCase();
+								String handicap1 = elements[29];
+								String odd_home1 = elements[30];
+								String odd_away1 = elements[31];
+								if (!handicap1.equals("-999")) {
+									Odd new_odd = new Odd(team1, team2,
+											is_negative ? "-" + handicap1
+													: handicap1,
+											Float.parseFloat(odd_home1),
+											Float.parseFloat(odd_away1),
+											OddType.HDP_FULLTIME);
+									new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
+											+ id + "_Hdp_Home');");
+									new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
+											+ id + "_Hdp_Away');");
+									id_map.put(new_id1, new_odd);
+									send_odds.put(new_odd.getId(), new_odd);
+									// logger.info(new_odd);
+								}
+
+								String handicap2 = elements[34];
+								String odd_home2 = elements[35];
+								String odd_away2 = elements[36];
+								if (!handicap2.equals("-999")) {
+									Odd new_odd = new Odd(team1, team2,
+											handicap2,
+											Float.parseFloat(odd_home2),
+											Float.parseFloat(odd_away2),
+											OddType.HDP_FULLTIME);
+									new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
+											+ id + "_Over_Home');");
+									new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
+											+ id + "_Under_Away');");
+									id_map.put(new_id2, new_odd);
+									send_odds.put(new_odd.getId(), new_odd);
+									// logger.info(new_odd);
+								}
+
+								String handicap3 = elements[39];
+								String odd_home3 = elements[40];
+								String odd_away3 = elements[41];
+								if (!handicap3.equals("-999")) {
+									Odd new_odd = new Odd(team1, team2,
+											is_negative ? "-" + handicap3
+													: handicap3,
+											Float.parseFloat(odd_home3),
+											Float.parseFloat(odd_away3),
+											OddType.HDP_FULLTIME);
+									new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
+											+ (Long.parseLong(id) + 1)
+											+ "_Hdp_Home');");
+									new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
+											+ (Long.parseLong(id) + 1)
+											+ "_Hdp_Away');");
+									id_map.put(new_id3, new_odd);
+									send_odds.put(new_odd.getId(), new_odd);
+									// logger.info(new_odd);
+								}
+
+								String handicap4 = elements[44];
+								String odd_home4 = elements[45];
+								String odd_away4 = elements[46];
+								if (!handicap4.equals("-999")) {
+									Odd new_odd = new Odd(team1, team2,
+											handicap4,
+											Float.parseFloat(odd_home4),
+											Float.parseFloat(odd_away4),
+											OddType.HDP_FULLTIME);
+									new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
+											+ (Long.parseLong(id) + 1)
+											+ "_Over_Home');");
+									new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
+											+ (Long.parseLong(id) + 1)
+											+ "_Under_Away');");
+									id_map.put(new_id4, new_odd);
+									send_odds.put(new_odd.getId(), new_odd);
+									// logger.info(new_odd);
+								}
+
 							} else {
 								// 8 element but not handle yet
-								logger.info("8 element but not handle yet");
-								logger.info(sub_array);
+//								logger.info("8 element but not handle yet");
+//								logger.info(sub_array);
 							}
 						} else {
 							// not 8 element
-							// logger.info(sub_array);
+//							logger.info("not 8 element");
+//							logger.info(sub_array);
 						}
 
 					}
