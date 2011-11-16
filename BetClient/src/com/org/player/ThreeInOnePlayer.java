@@ -27,6 +27,9 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.xalan.xsltc.compiler.sym;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
@@ -48,6 +51,7 @@ import com.org.messagequeue.TopicPublisher;
 import com.org.odd.Odd;
 import com.org.odd.OddElement;
 import com.org.odd.OddSide;
+import com.org.odd.OddType;
 import com.org.odd.OddUtilities;
 
 public class ThreeInOnePlayer extends Thread implements MessageListener {
@@ -80,12 +84,12 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				OddSide side = OddSide.LIVE;
 				ThreeInOnePlayer client = new ThreeInOnePlayer(argv[0],
 						argv[1], side);
-//				try {
-//					client.startConnection();
-//				} catch (JMSException e) {
-//					client.logger.info("error establish JMS connection");
-//					return;
-//				}
+				// try {
+				// client.startConnection();
+				// } catch (JMSException e) {
+				// client.logger.info("error establish JMS connection");
+				// return;
+				// }
 
 				client.homePage();
 				Thread.sleep(1000 * 60 * 60 * 1);// play for 2 hours
@@ -105,6 +109,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -203,12 +210,12 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 	private void homePage() throws FailingHttpStatusCodeException,
 			MalformedURLException, IOException, InterruptedException,
-			JMSException {
+			JMSException, JSONException {
 		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
-		webClient.setThrowExceptionOnScriptError(false);
-		webClient.setThrowExceptionOnFailingStatusCode(false);
+		webClient.setThrowExceptionOnScriptError(true);
+		webClient.setThrowExceptionOnFailingStatusCode(true);
 		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
 
 		page = webClient.getPage("http://www.3in1bet.com");
@@ -291,8 +298,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 		FrameWindow frm_main = page.getFrameByName("fraMain");
 		odd_page = (HtmlPage) frm_main.getEnclosedPage();
-
-		webClient.waitForBackgroundJavaScript(3000);
+		odd_page.executeJavaScript("RefreshIncrement()");
+		webClient.waitForBackgroundJavaScript(10000);
 
 		this.isLoggin = true;
 		logger.info("Logged in as " + this.username);
@@ -305,20 +312,132 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// "onclick",
 		// "RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		// form.appendChild(refresh_live);
-		//
-		while (true) {
-			long a = System.currentTimeMillis();
-			// refresh_live.click();
-			ScriptResult result = this.odd_page
-					.executeJavaScript("var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();;secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
-			
-			long b = System.currentTimeMillis();
-			this.doPolling();
+		// secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;C;
+		HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
+		HashMap<String, OddElement> map_odds = this.util
+				.getOddsFromThreeInOne(table);
+		HashMap<String, Odd> id_map = this.convertTable(map_odds);
 
-			logger.info(this.username + ":" + (b - a));
-//			Thread.sleep(2000);
-		}
+		while (true)
+			try {
+				long a = System.currentTimeMillis();
+				// refresh_live.click();
+				ScriptResult result = this.odd_page
+						.executeJavaScript("var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();var request =$.ajax({type:\"POST\",contentType:\"application/json; charset=utf-8\",data:B,url:C,cache:false,timeout:20000,dataType:\"json\",success:onFuck});var suck;function onFuck(data){if(data){LastRunningVersion=data.t;suck=JSON.stringify(data);}};suck");
+				String json_result = "" + result.getJavaScriptResult();
+				// logger.info(json_result);
+				HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
+				try {
+					// logger.info(json_result);
+					JSONArray json = (new JSONObject(json_result))
+							.getJSONArray("data");
+					// this.doPolling();
+					long b = System.currentTimeMillis();
+
+					// logger.info(this.username + ":" + (b - a));
+					for (int i = 0; i < json.length(); i++) {
+						JSONArray sub_array = json.getJSONArray(i);
+
+						if (sub_array.length() == 8) {
+							long id1 = sub_array.getLong(0);
+							long id2 = sub_array.getLong(2);
+							if (id2 >= 40)
+								id1++;
+
+							// update odd value
+							if (id2 == 30 || id2 == 35 || id2 == 40
+									|| id2 == 45) {
+								String id = id1 + "_" + id2;
+								if (id_map.containsKey(id)) {
+									// logger.info(sub_array);
+									// logger.info(id_map.get(id));
+									id_map.get(id).setOdd_home(
+											(float) sub_array.getDouble(3));
+									id_map.get(id).setOdd_away(
+											(float) sub_array.getDouble(4));
+									send_odds.put(id_map.get(id).getId(),
+											id_map.get(id));
+								} else {
+									// update odd but odd not found
+									logger.info("update odd but odd not found");
+									logger.info(sub_array);
+								}
+
+							} else if (id2 == 28 || id2 == 33 || id2 == 38
+									|| id2 == 43) {
+								String id = id1 + "_" + (id2 + 2);
+								if (id_map.containsKey(id)) {
+									// change handicap
+									if (!id_map
+											.get(id)
+											.getHandicap()
+											.equals(sub_array.getDouble(4) + "")) {
+										logger.info(sub_array);
+										logger.info(id_map.get(id));
+										// remove old odd
+										send_odds.put(id_map.get(id).getId(),
+												null);
+										// update to new handicap
+										id_map.get(id).setHandicap(
+												sub_array.getDouble(4) + "");
+										// send new handicap odd
+										send_odds.put(id_map.get(id).getId(),
+												id_map.get(id));
+
+									}
+								} else {
+									// update handicap but not found key
+									logger.info("update handicap but not found key");
+									logger.info(sub_array);
+								}
+
+							} else {
+								// 8 element but not handle yet
+								logger.info("8 element but not handle yet");
+								logger.info(sub_array);
+							}
+						} else {
+							// not 8 element
+							// logger.info(sub_array);
+						}
+
+					}
+					this.p.sendMapMessage(send_odds, "3in");
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+				Thread.sleep(2000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		// webClient.closeAllWindows();
+	}
+
+	private synchronized HashMap<String, Odd> convertTable(
+			HashMap<String, OddElement> table) {
+		HashMap<String, Odd> result = new HashMap<String, Odd>();
+		for (Entry<String, OddElement> e : table.entrySet()) {
+			String[] ids = e.getValue().getHome().getAttribute("id").split("_");
+			String id = ids[ids.length - 1];
+			OddType type = e.getValue().getOdd().getType();
+			switch (type) {
+			case HDP_FULLTIME:
+				id += "_30";
+				break;
+			case OU_FULLTIME:
+				id += "_35";
+				break;
+			case HDP_HALFTIME:
+				id += "_40";
+				break;
+			case OU_HALFTIME:
+				id += "_45";
+				break;
+			}
+			result.put(id, e.getValue().getOdd());
+		}
+		return result;
 	}
 
 	private synchronized void doPolling() throws IOException,
@@ -341,8 +460,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
 			// long startTime = System.currentTimeMillis();
 			// refresh_live.click();
-			this.odd_page
-					.executeJavaScript("LoadIncRunningData();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
+			// this.odd_page
+			// .executeJavaScript("LoadIncRunningData();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 			// Thread.sleep(sleep_time);
 			HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
 
