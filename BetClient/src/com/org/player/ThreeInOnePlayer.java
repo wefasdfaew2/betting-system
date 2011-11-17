@@ -324,6 +324,13 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		id_map = this.convertTable(map_odds);
 		header_map = this.util.getTeamHeaderFromThreeInOne(table);
 
+		// while (true) {
+		// long a = System.currentTimeMillis();
+		// this.doPolling();
+		// long b = System.currentTimeMillis();
+		// logger.info(b - a);
+		// Thread.sleep(1000);
+		// }
 		// webClient.closeAllWindows();
 	}
 
@@ -355,10 +362,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 	private synchronized void doPolling() {
 		try {
-			long a = System.currentTimeMillis();
 			// refresh_live.click();
 			ScriptResult result = this.odd_page
-					.executeJavaScript("var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();var request =$.ajax({type:\"POST\",contentType:\"application/json; charset=utf-8\",data:B,url:C,cache:false,timeout:20000,dataType:\"json\",success:onFuck});var suck;function onFuck(data){if(data){LastRunningVersion=data.t;suck=JSON.stringify(data);}};suck");
+					.executeJavaScript("secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();var request =$.ajax({type:\"POST\",contentType:\"application/json; charset=utf-8\",data:B,url:C,cache:false,timeout:20000,dataType:\"json\",success:onFuck});var suck;function onFuck(data){if(data){LastRunningVersion=data.t;suck=JSON.stringify(data);}};suck");
 			String json_result = "" + result.getJavaScriptResult();
 			// logger.info(json_result);
 			HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
@@ -366,8 +372,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				// logger.info(json_result);
 				JSONArray json = (new JSONObject(json_result))
 						.getJSONArray("data");
-				// this.doPolling();
-				long b = System.currentTimeMillis();
 
 				// logger.info(this.username + ":" + (b - a));
 				for (int i = 0; i < json.length(); i++) {
@@ -393,8 +397,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 										id_map.get(id));
 							} else {
 								// update odd but odd not found
-								logger.info("update odd but odd not found");
-								logger.info(sub_array);
+								// logger.info("update odd but odd not found");
+								// logger.info(sub_array);
 							}
 
 						} else if (id2 == 28 || id2 == 33 || id2 == 38
@@ -406,9 +410,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 								// change handicap if not equal
 								if (!id_map.get(id).getHandicap()
 										.equals(sub_array.getDouble(4) + "")) {
-									logger.info("update handicap");
-									logger.info(sub_array);
-									logger.info(id_map.get(id));
+									// logger.info("update handicap");
+									// logger.info(sub_array);
+									// logger.info(id_map.get(id));
 									// remove old odd
 									send_odds.put(id_map.get(id).getId(), null);
 									// update to new handicap
@@ -424,17 +428,17 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 									send_odds.put(id_map.get(id).getId(), null);
 									id_map.get(id).setHandicap(handicap);
-									logger.info(id_map.get(id));
+									// logger.info(id_map.get(id));
 									// send new handicap odd
-//									if (!handicap.equals("-999.0"))
-//										send_odds.put(id_map.get(id).getId(),
-//												id_map.get(id));
+									// if (!handicap.equals("-999.0"))
+									// send_odds.put(id_map.get(id).getId(),
+									// id_map.get(id));
 
 								}
 							} else {
 								// update handicap but not found key
-								logger.info("update handicap but not found key");
-								logger.info(sub_array);
+								// logger.info("update handicap but not found key");
+								// logger.info(sub_array);
 								// add new entry
 								OddType type = null;
 								if (id2 == 28)
@@ -445,13 +449,30 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 									type = OddType.HDP_HALFTIME;
 								if (id2 == 43)
 									type = OddType.OU_HALFTIME;
-								TeamHeader header = header_map.get(id1 + "");
-								Odd new_odd = new Odd(header.getTeam1(),
-										header.getTeam2(),
-										sub_array.getDouble(4) + "", -999,
-										-999, type);
-								id_map.put(id, new_odd);
-								logger.info(new_odd);
+								if (header_map.containsKey(id1 + "")) {
+									TeamHeader header = header_map
+											.get(id1 + "");
+									double handicap = sub_array.getDouble(4);
+									if (header.isNagative_handicap()
+											&& handicap > 0)
+										handicap = -handicap;
+									Odd new_odd = new Odd(header.getTeam1(),
+											header.getTeam2(), handicap + "",
+											-999, -999, type);
+									if (id2 == 28 || id2 == 38) {
+										new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
+												+ id1 + "_Hdp_Home');");
+										new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
+												+ id1 + "_Hdp_Away');");
+									} else {
+										new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
+												+ id1 + "_Over_Home');");
+										new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
+												+ id1 + "_Under_Away');");
+									}
+									id_map.put(id, new_odd);
+								}
+								// logger.info(new_odd);
 							}
 
 						} else if (id2 == 51 || id2 == 54) {
@@ -464,10 +485,12 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 							// logger.info("special update lol");
 
 							String id = elements[15].trim();
+
 							String new_id1 = id + "_30";
 							String new_id2 = id + "_35";
 							String new_id3 = (Long.parseLong(id) + 1) + "_40";
 							String new_id4 = (Long.parseLong(id) + 1) + "_45";
+
 							boolean is_negative = !elements[58].equals("True");
 
 							String team1 = elements[18].toUpperCase();
@@ -480,14 +503,18 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 									Float.parseFloat(odd_home1),
 									Float.parseFloat(odd_away1),
 									OddType.HDP_FULLTIME);
-							id_map.put(new_id1, new_odd1);
+
+							header_map.put(id, new TeamHeader(team1, team2,
+									is_negative));
+							header_map.put(elements[91], new TeamHeader(team1,
+									team2, is_negative));
 							if (!handicap1.equals("-999")) {
 
 								new_odd1.setOdd_home_xpath("javascript: OddsClick(this, '"
 										+ id + "_Hdp_Home');");
 								new_odd1.setOdd_away_xpath("javascript: OddsClick(this, '"
 										+ id + "_Hdp_Away');");
-
+								id_map.put(new_id1, new_odd1);
 								send_odds.put(new_odd1.getId(), new_odd1);
 								// logger.info(new_odd);
 							} else { // remove
