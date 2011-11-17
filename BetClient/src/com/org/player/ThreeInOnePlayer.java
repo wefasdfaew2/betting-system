@@ -80,6 +80,8 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	Session session;
 	Connection connection;
 	MessagePublisher sbo = new MessagePublisher("Maj3259005");
+	HashMap<String, Odd> id_map;
+	HashMap<String, TeamHeader> header_map;
 
 	public static void main(String[] argv) {
 		while (true) {
@@ -87,12 +89,12 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 				OddSide side = OddSide.LIVE;
 				ThreeInOnePlayer client = new ThreeInOnePlayer(argv[0],
 						argv[1], side);
-				// try {
-				// client.startConnection();
-				// } catch (JMSException e) {
-				// client.logger.info("error establish JMS connection");
-				// return;
-				// }
+				try {
+					client.startConnection();
+				} catch (JMSException e) {
+					client.logger.info("error establish JMS connection");
+					return;
+				}
 
 				client.homePage();
 				Thread.sleep(1000 * 60 * 60 * 1);// play for 2 hours
@@ -319,235 +321,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
 		HashMap<String, OddElement> map_odds = this.util
 				.getOddsFromThreeInOne(table);
-		HashMap<String, Odd> id_map = this.convertTable(map_odds);
-		HashMap<String, TeamHeader> header_map = this.util
-				.getTeamHeaderFromThreeInOne(table);
+		id_map = this.convertTable(map_odds);
+		header_map = this.util.getTeamHeaderFromThreeInOne(table);
 
-		while (true)
-			try {
-				long a = System.currentTimeMillis();
-				// refresh_live.click();
-				ScriptResult result = this.odd_page
-						.executeJavaScript("var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();var request =$.ajax({type:\"POST\",contentType:\"application/json; charset=utf-8\",data:B,url:C,cache:false,timeout:20000,dataType:\"json\",success:onFuck});var suck;function onFuck(data){if(data){LastRunningVersion=data.t;suck=JSON.stringify(data);}};suck");
-				String json_result = "" + result.getJavaScriptResult();
-				// logger.info(json_result);
-				HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
-				try {
-					// logger.info(json_result);
-					JSONArray json = (new JSONObject(json_result))
-							.getJSONArray("data");
-					// this.doPolling();
-					long b = System.currentTimeMillis();
-
-					// logger.info(this.username + ":" + (b - a));
-					for (int i = 0; i < json.length(); i++) {
-						JSONArray sub_array = json.getJSONArray(i);
-
-						if (sub_array.length() == 8) {
-							long id1 = sub_array.getLong(0);
-							long id2 = sub_array.getLong(2);
-
-							// update odd value
-							if (id2 == 30 || id2 == 35 || id2 == 40
-									|| id2 == 45) {
-								if (id2 >= 40)
-									id1++;
-								String id = id1 + "_" + id2;
-								if (id_map.containsKey(id)) {
-									// logger.info(sub_array);
-									// logger.info(id_map.get(id));
-									id_map.get(id).setOdd_home(
-											(float) sub_array.getDouble(3));
-									id_map.get(id).setOdd_away(
-											(float) sub_array.getDouble(4));
-									send_odds.put(id_map.get(id).getId(),
-											id_map.get(id));
-								} else {
-									// update odd but odd not found
-									logger.info("update odd but odd not found");
-									logger.info(sub_array);
-								}
-
-							} else if (id2 == 28 || id2 == 33 || id2 == 38
-									|| id2 == 43) {
-								if (id2 >= 38)
-									id1++;
-								String id = id1 + "_" + (id2 + 2);
-								if (id_map.containsKey(id)) {
-									// change handicap if not equal
-									if (!id_map
-											.get(id)
-											.getHandicap()
-											.equals(sub_array.getDouble(4) + "")) {
-										logger.info("update handicap");
-										logger.info(sub_array);
-										logger.info(id_map.get(id));
-										// remove old odd
-										send_odds.put(id_map.get(id).getId(),
-												null);
-										// update to new handicap
-										// check if negative handicap
-										boolean is_negative = sub_array
-												.getLong(5) == 0;
-
-										String handicap = sub_array
-												.getDouble(4) + "";
-										if (is_negative
-												&& sub_array.getDouble(4) > 0
-												&& id2 != 33 && id2 != 43)
-											handicap = "-"
-													+ sub_array.getDouble(4);
-										id_map.get(id).setHandicap(handicap);
-										logger.info(id_map.get(id));
-										// send new handicap odd
-										send_odds.put(id_map.get(id).getId(),
-												id_map.get(id));
-
-									}
-								} else {
-									// update handicap but not found key
-									logger.info("update handicap but not found key");
-									logger.info(sub_array);
-									// add new entry
-									OddType type = null;
-									if (id2 == 28)
-										type = OddType.HDP_FULLTIME;
-									if (id2 == 33)
-										type = OddType.OU_FULLTIME;
-									if (id2 == 38)
-										type = OddType.HDP_HALFTIME;
-									if (id2 == 43)
-										type = OddType.OU_HALFTIME;
-									TeamHeader header = header_map
-											.get(id1 + "");
-									Odd new_odd = new Odd(header.getTeam1(),
-											header.getTeam2(),
-											sub_array.getDouble(4) + "", -999,
-											-999, type);
-									id_map.put(id, new_odd);
-									logger.info(new_odd);
-								}
-
-							} else if (id2 == 51 || id2 == 54) {
-								// special update lol
-								// add new 4 odds lol
-
-								String[] elements = StringUtils.split(
-										sub_array.getString(3), "|");
-								// String team1 = elements[];
-								// logger.info("special update lol");
-
-								String id = elements[15].trim();
-								String new_id1 = id + "_30";
-								String new_id2 = id + "_35";
-								String new_id3 = (Long.parseLong(id) + 1)
-										+ "_40";
-								String new_id4 = (Long.parseLong(id) + 1)
-										+ "_45";
-								boolean is_negative = !elements[58]
-										.equals("True");
-
-								String team1 = elements[18].toUpperCase();
-								String team2 = elements[25].toUpperCase();
-								String handicap1 = elements[29];
-								String odd_home1 = elements[30];
-								String odd_away1 = elements[31];
-								if (!handicap1.equals("-999")) {
-									Odd new_odd = new Odd(team1, team2,
-											is_negative ? "-" + handicap1
-													: handicap1,
-											Float.parseFloat(odd_home1),
-											Float.parseFloat(odd_away1),
-											OddType.HDP_FULLTIME);
-									new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
-											+ id + "_Hdp_Home');");
-									new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
-											+ id + "_Hdp_Away');");
-									id_map.put(new_id1, new_odd);
-									send_odds.put(new_odd.getId(), new_odd);
-									// logger.info(new_odd);
-								}
-
-								String handicap2 = elements[34];
-								String odd_home2 = elements[35];
-								String odd_away2 = elements[36];
-								if (!handicap2.equals("-999")) {
-									Odd new_odd = new Odd(team1, team2,
-											handicap2,
-											Float.parseFloat(odd_home2),
-											Float.parseFloat(odd_away2),
-											OddType.HDP_FULLTIME);
-									new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
-											+ id + "_Over_Home');");
-									new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
-											+ id + "_Under_Away');");
-									id_map.put(new_id2, new_odd);
-									send_odds.put(new_odd.getId(), new_odd);
-									// logger.info(new_odd);
-								}
-
-								String handicap3 = elements[39];
-								String odd_home3 = elements[40];
-								String odd_away3 = elements[41];
-								if (!handicap3.equals("-999")) {
-									Odd new_odd = new Odd(team1, team2,
-											is_negative ? "-" + handicap3
-													: handicap3,
-											Float.parseFloat(odd_home3),
-											Float.parseFloat(odd_away3),
-											OddType.HDP_FULLTIME);
-									new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
-											+ (Long.parseLong(id) + 1)
-											+ "_Hdp_Home');");
-									new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
-											+ (Long.parseLong(id) + 1)
-											+ "_Hdp_Away');");
-									id_map.put(new_id3, new_odd);
-									send_odds.put(new_odd.getId(), new_odd);
-									// logger.info(new_odd);
-								}
-
-								String handicap4 = elements[44];
-								String odd_home4 = elements[45];
-								String odd_away4 = elements[46];
-								if (!handicap4.equals("-999")) {
-									Odd new_odd = new Odd(team1, team2,
-											handicap4,
-											Float.parseFloat(odd_home4),
-											Float.parseFloat(odd_away4),
-											OddType.HDP_FULLTIME);
-									new_odd.setOdd_home_xpath("javascript: OddsClick(this, '"
-											+ (Long.parseLong(id) + 1)
-											+ "_Over_Home');");
-									new_odd.setOdd_away_xpath("javascript: OddsClick(this, '"
-											+ (Long.parseLong(id) + 1)
-											+ "_Under_Away');");
-									id_map.put(new_id4, new_odd);
-									send_odds.put(new_odd.getId(), new_odd);
-									// logger.info(new_odd);
-								}
-
-							} else {
-								// 8 element but not handle yet
-								// logger.info("8 element but not handle yet");
-								// logger.info(sub_array);
-							}
-						} else {
-							// not 8 element
-							// logger.info("not 8 element");
-							// logger.info(sub_array);
-						}
-
-					}
-					this.p.sendMapMessage(send_odds, "3in");
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-
-				Thread.sleep(2000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		// webClient.closeAllWindows();
 	}
 
@@ -577,7 +353,235 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		return result;
 	}
 
-	private synchronized void doPolling() throws IOException,
+	private synchronized void doPolling() {
+		try {
+			long a = System.currentTimeMillis();
+			// refresh_live.click();
+			ScriptResult result = this.odd_page
+					.executeJavaScript("var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();var request =$.ajax({type:\"POST\",contentType:\"application/json; charset=utf-8\",data:B,url:C,cache:false,timeout:20000,dataType:\"json\",success:onFuck});var suck;function onFuck(data){if(data){LastRunningVersion=data.t;suck=JSON.stringify(data);}};suck");
+			String json_result = "" + result.getJavaScriptResult();
+			// logger.info(json_result);
+			HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
+			try {
+				// logger.info(json_result);
+				JSONArray json = (new JSONObject(json_result))
+						.getJSONArray("data");
+				// this.doPolling();
+				long b = System.currentTimeMillis();
+
+				// logger.info(this.username + ":" + (b - a));
+				for (int i = 0; i < json.length(); i++) {
+					JSONArray sub_array = json.getJSONArray(i);
+
+					if (sub_array.length() == 8) {
+						long id1 = sub_array.getLong(0);
+						long id2 = sub_array.getLong(2);
+
+						// update odd value
+						if (id2 == 30 || id2 == 35 || id2 == 40 || id2 == 45) {
+							if (id2 >= 40)
+								id1++;
+							String id = id1 + "_" + id2;
+							if (id_map.containsKey(id)) {
+								// logger.info(sub_array);
+								// logger.info(id_map.get(id));
+								id_map.get(id).setOdd_home(
+										(float) sub_array.getDouble(3));
+								id_map.get(id).setOdd_away(
+										(float) sub_array.getDouble(4));
+								send_odds.put(id_map.get(id).getId(),
+										id_map.get(id));
+							} else {
+								// update odd but odd not found
+								logger.info("update odd but odd not found");
+								logger.info(sub_array);
+							}
+
+						} else if (id2 == 28 || id2 == 33 || id2 == 38
+								|| id2 == 43) {
+							if (id2 >= 38)
+								id1++;
+							String id = id1 + "_" + (id2 + 2);
+							if (id_map.containsKey(id)) {
+								// change handicap if not equal
+								if (!id_map.get(id).getHandicap()
+										.equals(sub_array.getDouble(4) + "")) {
+									logger.info("update handicap");
+									logger.info(sub_array);
+									logger.info(id_map.get(id));
+									// remove old odd
+									send_odds.put(id_map.get(id).getId(), null);
+									// update to new handicap
+									// check if negative handicap
+									boolean is_negative = sub_array.getLong(5) == 0;
+
+									String handicap = sub_array.getDouble(4)
+											+ "";
+									if (is_negative
+											&& sub_array.getDouble(4) > 0
+											&& id2 != 33 && id2 != 43)
+										handicap = "-" + sub_array.getDouble(4);
+
+									send_odds.put(id_map.get(id).getId(), null);
+									id_map.get(id).setHandicap(handicap);
+									logger.info(id_map.get(id));
+									// send new handicap odd
+//									if (!handicap.equals("-999.0"))
+//										send_odds.put(id_map.get(id).getId(),
+//												id_map.get(id));
+
+								}
+							} else {
+								// update handicap but not found key
+								logger.info("update handicap but not found key");
+								logger.info(sub_array);
+								// add new entry
+								OddType type = null;
+								if (id2 == 28)
+									type = OddType.HDP_FULLTIME;
+								if (id2 == 33)
+									type = OddType.OU_FULLTIME;
+								if (id2 == 38)
+									type = OddType.HDP_HALFTIME;
+								if (id2 == 43)
+									type = OddType.OU_HALFTIME;
+								TeamHeader header = header_map.get(id1 + "");
+								Odd new_odd = new Odd(header.getTeam1(),
+										header.getTeam2(),
+										sub_array.getDouble(4) + "", -999,
+										-999, type);
+								id_map.put(id, new_odd);
+								logger.info(new_odd);
+							}
+
+						} else if (id2 == 51 || id2 == 54) {
+							// special update lol
+							// add new 4 odds lol
+
+							String[] elements = StringUtils.split(
+									sub_array.getString(3), "|");
+							// String team1 = elements[];
+							// logger.info("special update lol");
+
+							String id = elements[15].trim();
+							String new_id1 = id + "_30";
+							String new_id2 = id + "_35";
+							String new_id3 = (Long.parseLong(id) + 1) + "_40";
+							String new_id4 = (Long.parseLong(id) + 1) + "_45";
+							boolean is_negative = !elements[58].equals("True");
+
+							String team1 = elements[18].toUpperCase();
+							String team2 = elements[25].toUpperCase();
+							String handicap1 = elements[29];
+							String odd_home1 = elements[30];
+							String odd_away1 = elements[31];
+							Odd new_odd1 = new Odd(team1, team2,
+									is_negative ? "-" + handicap1 : handicap1,
+									Float.parseFloat(odd_home1),
+									Float.parseFloat(odd_away1),
+									OddType.HDP_FULLTIME);
+							id_map.put(new_id1, new_odd1);
+							if (!handicap1.equals("-999")) {
+
+								new_odd1.setOdd_home_xpath("javascript: OddsClick(this, '"
+										+ id + "_Hdp_Home');");
+								new_odd1.setOdd_away_xpath("javascript: OddsClick(this, '"
+										+ id + "_Hdp_Away');");
+
+								send_odds.put(new_odd1.getId(), new_odd1);
+								// logger.info(new_odd);
+							} else { // remove
+								send_odds.put(new_odd1.getId(), null);
+							}
+
+							String handicap2 = elements[34];
+							String odd_home2 = elements[35];
+							String odd_away2 = elements[36];
+							Odd new_odd2 = new Odd(team1, team2, handicap2,
+									Float.parseFloat(odd_home2),
+									Float.parseFloat(odd_away2),
+									OddType.OU_FULLTIME);
+							if (!handicap2.equals("-999")) {
+
+								new_odd2.setOdd_home_xpath("javascript: OddsClick(this, '"
+										+ id + "_Over_Home');");
+								new_odd2.setOdd_away_xpath("javascript: OddsClick(this, '"
+										+ id + "_Under_Away');");
+								id_map.put(new_id2, new_odd2);
+								send_odds.put(new_odd2.getId(), new_odd2);
+								// logger.info(new_odd);
+							} else {
+								send_odds.put(new_odd2.getId(), null);
+							}
+
+							String handicap3 = elements[39];
+							String odd_home3 = elements[40];
+							String odd_away3 = elements[41];
+							Odd new_odd3 = new Odd(team1, team2,
+									is_negative ? "-" + handicap3 : handicap3,
+									Float.parseFloat(odd_home3),
+									Float.parseFloat(odd_away3),
+									OddType.HDP_HALFTIME);
+							if (!handicap3.equals("-999")) {
+
+								new_odd3.setOdd_home_xpath("javascript: OddsClick(this, '"
+										+ (Long.parseLong(id) + 1)
+										+ "_Hdp_Home');");
+								new_odd3.setOdd_away_xpath("javascript: OddsClick(this, '"
+										+ (Long.parseLong(id) + 1)
+										+ "_Hdp_Away');");
+								id_map.put(new_id3, new_odd3);
+								send_odds.put(new_odd3.getId(), new_odd3);
+								// logger.info(new_odd);
+							} else {
+								send_odds.put(new_odd3.getId(), null);
+							}
+
+							String handicap4 = elements[44];
+							String odd_home4 = elements[45];
+							String odd_away4 = elements[46];
+							Odd new_odd4 = new Odd(team1, team2, handicap4,
+									Float.parseFloat(odd_home4),
+									Float.parseFloat(odd_away4),
+									OddType.OU_HALFTIME);
+							if (!handicap4.equals("-999")) {
+
+								new_odd4.setOdd_home_xpath("javascript: OddsClick(this, '"
+										+ (Long.parseLong(id) + 1)
+										+ "_Over_Home');");
+								new_odd4.setOdd_away_xpath("javascript: OddsClick(this, '"
+										+ (Long.parseLong(id) + 1)
+										+ "_Under_Away');");
+								id_map.put(new_id4, new_odd4);
+								send_odds.put(new_odd4.getId(), new_odd4);
+								// logger.info(new_odd);
+							} else {
+								send_odds.put(new_odd4.getId(), null);
+							}
+
+						} else {
+							// 8 element but not handle yet
+							// logger.info("8 element but not handle yet");
+							// logger.info(sub_array);
+						}
+					} else {
+						// not 8 element
+						// logger.info("not 8 element");
+						// logger.info(sub_array);
+					}
+
+				}
+				this.p.sendMapMessage(send_odds, "3in");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private synchronized void doPolling1() throws IOException,
 			InterruptedException, JMSException {
 
 		this.isPolling = true;
