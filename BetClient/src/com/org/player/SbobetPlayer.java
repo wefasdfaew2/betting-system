@@ -54,6 +54,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	private HtmlPage page;
 	private HtmlPage odd_page;
 	private HtmlPage ticket_page;
+	private HtmlPage left_page;
 	private HtmlPage ticket_div;
 	private WebClient webClient;
 	private boolean isCrawler;
@@ -245,8 +246,8 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 		webClient.waitForBackgroundJavaScript(30000);
 
-		HtmlPage left_page = (HtmlPage) webClient.getWebWindowByName(
-				"leftFrame").getEnclosedPage();
+		left_page = (HtmlPage) webClient.getWebWindowByName("leftFrame")
+				.getEnclosedPage();
 		if (this.side == OddSide.EARLY) {
 			// navigate to early market page
 			HtmlElement e = left_page.createElement("a");
@@ -285,11 +286,23 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 		this.isLoggin = true;
 		logger.info("loggin as " + this.username);
-		while (true) {
-			this.doPolling();
-			Thread.sleep(1000);
-		}
 
+		getUserInfo();
+
+		// while (true) {
+		// this.doPolling();
+		// Thread.sleep(1000);
+		// }
+
+	}
+
+	private UserInfo getUserInfo() {
+		UserInfo info = null;
+		HtmlPage credit_page = (HtmlPage) this.webClient.getWebWindowByName(
+				"BCIFrame").getEnclosedPage();
+		float credit = Float.parseFloat(credit_page.getElementById("bc").asText());
+		System.out.println(credit);
+		return info;
 	}
 
 	public void doPolling() throws IOException, JMSException {
