@@ -57,7 +57,7 @@ import com.org.odd.OddUtilities;
 import com.org.odd.TeamHeader;
 import com.org.odd.TeamType;
 
-public class ThreeInOnePlayer extends Thread implements MessageListener {
+public class ThreeInOnePlayer extends Thread implements MessageListener,IPlayer {
 	String url = JMSConfiguration.getHostURL();
 	private final Logger logger;
 	private String username;
@@ -82,6 +82,14 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	MessagePublisher sbo = new MessagePublisher("Maj3259005");
 	HashMap<String, Odd> id_map;
 	HashMap<String, TeamHeader> header_map;
+
+	public HashMap<String, OddElement> getCurrent_map_odds() {
+		return current_map_odds;
+	}
+
+	public void setCurrent_map_odds(HashMap<String, OddElement> current_map_odds) {
+		this.current_map_odds = current_map_odds;
+	}
 
 	public static void main(String[] argv) {
 		while (true) {
@@ -119,6 +127,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
@@ -135,6 +146,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	}
 
 	private synchronized void startConnection() throws JMSException {
+		this.p = new TopicPublisher();
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		connection = factory.createConnection();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -152,7 +164,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 	public ThreeInOnePlayer(String username, String pass, OddSide side)
 			throws JMSException {
 		super();
-		this.p = new TopicPublisher();
 		this.username = username;
 		this.pass = pass;
 		PropertyConfigurator.configure("log4j.properties");
@@ -164,7 +175,6 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 
 	public ThreeInOnePlayer(String acc, OddSide side) throws JMSException {
 		super();
-		this.p = new TopicPublisher();
 		String[] a = acc.split(",");
 		this.username = a[0];
 		this.pass = a[1];
@@ -175,7 +185,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		this.current_map_odds = new HashMap<String, OddElement>();
 	}
 
-	private synchronized void sendData(HashMap<String, OddElement> map_odds)
+	public synchronized void sendData(HashMap<String, OddElement> map_odds)
 			throws JMSException {
 		HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
 
@@ -213,9 +223,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		op.close();
 	}
 
-	private void homePage() throws FailingHttpStatusCodeException,
-			MalformedURLException, IOException, InterruptedException,
-			JMSException, JSONException {
+	public void homePage() throws Exception {
 		webClient = new WebClient(BrowserVersion.INTERNET_EXPLORER_6);
 		webClient.setJavaScriptEnabled(true);
 		webClient.setTimeout(5000);
@@ -319,19 +327,28 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		// form.appendChild(refresh_live);
 		// secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;C;
 		HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
-		HashMap<String, OddElement> map_odds = this.util
+		current_map_odds = this.util
 				.getOddsFromThreeInOne(table);
-		id_map = this.convertTable(map_odds);
+		id_map = this.convertTable(current_map_odds);
 		header_map = this.util.getTeamHeaderFromThreeInOne(table);
 
-		// while (true) {
-		// long a = System.currentTimeMillis();
-		// this.doPolling();
-		// long b = System.currentTimeMillis();
-		// logger.info(b - a);
-		// Thread.sleep(1000);
-		// }
+		// getUserInfo();
+//		while (true) {
+//			long a = System.currentTimeMillis();
+//			this.doPolling();
+//			long b = System.currentTimeMillis();
+//			logger.info(b - a);
+//			Thread.sleep(1000);
+//		}
 		// webClient.closeAllWindows();
+	}
+
+	private UserInfo getUserInfo() {
+		UserInfo info = null;
+		long credit = Long.parseLong(odd_page.getElementById("lb_bet_credit")
+				.asText());
+
+		return info;
 	}
 
 	private synchronized HashMap<String, Odd> convertTable(
@@ -360,12 +377,31 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		return result;
 	}
 
-	private synchronized void doPolling() {
+	public synchronized void doPolling() {
 		try {
 			// refresh_live.click();
-			ScriptResult result = this.odd_page
-					.executeJavaScript("secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();var request =$.ajax({type:\"POST\",contentType:\"application/json; charset=utf-8\",data:B,url:C,cache:false,timeout:20000,dataType:\"json\",success:onFuck});var suck;function onFuck(data){if(data){LastRunningVersion=data.t;suck=JSON.stringify(data);}};suck");
-			String json_result = "" + result.getJavaScriptResult();
+			// String java_script =
+			// "secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();var request =$.ajax({type:\"POST\",contentType:\"application/json; charset=utf-8\",data:B,url:C,cache:false,timeout:20000,dataType:\"json\",success:onFuck});var suck;function onFuck(data){if(data){LastRunningVersion=data.t;suck=QueueUpdateIncRunningData(data.data);}};suck";
+			// LoadIncRunningData()
+			String java_script = "secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;RunningDataUpdating=true;var B=GetOddsParams(5,LastRunningVersion);var C=GetOddsUrl();callWebService(C,B,onLoadedIncRunningData1,onLoadingDataException);function onLoadedIncRunningData1(){}";
+			// HtmlElement ele = this.odd_page.createElement("a");
+			// ele.setAttribute("onclick", "javascript:" + java_script);
+			// HtmlForm form = (HtmlForm) odd_page.getElementById("frmGVHDP");
+			// form.appendChild(ele);
+			// ele.click();
+
+			this.odd_page.executeJavaScript(java_script);
+			HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
+
+			HashMap<String, OddElement> map_odds = this.util
+					.getOddsFromThreeInOne(table);
+
+			this.sendData(map_odds);
+			// ScriptResult result = this.odd_page.executeJavaScript();
+
+			if (true)
+				return;
+			String json_result = "";// + result.getJavaScriptResult();
 			// logger.info(json_result);
 			HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
 			try {
@@ -608,7 +644,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener {
 		}
 	}
 
-	private synchronized void doPolling1() throws IOException,
+	public synchronized void doPolling1() throws IOException,
 			InterruptedException, JMSException {
 
 		this.isPolling = true;

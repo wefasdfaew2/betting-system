@@ -42,7 +42,7 @@ import com.org.odd.OddElement;
 import com.org.odd.OddSide;
 import com.org.odd.OddUtilities;
 
-public class SbobetPlayer extends Thread implements MessageListener {
+public class SbobetPlayer extends Thread implements MessageListener, IPlayer {
 	String url = JMSConfiguration.getHostURL();
 	private TopicPublisher p;
 	private final Logger logger;
@@ -66,6 +66,14 @@ public class SbobetPlayer extends Thread implements MessageListener {
 	private boolean isLoggin = false;
 	Session session;
 	Connection connection;
+
+	public HashMap<String, OddElement> getCurrent_map_odds() {
+		return current_map_odds;
+	}
+
+	public void setCurrent_map_odds(HashMap<String, OddElement> current_map_odds) {
+		this.current_map_odds = current_map_odds;
+	}
 
 	public static void main(String[] argv) {
 		while (true) {
@@ -154,7 +162,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		this.current_map_odds = new HashMap<String, OddElement>();
 	}
 
-	private void sendData(HashMap<String, OddElement> map_odds)
+	public void sendData(HashMap<String, OddElement> map_odds)
 			throws JMSException {
 		HashMap<String, Odd> send_odds = new HashMap<String, Odd>();
 
@@ -271,23 +279,12 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		webClient.waitForBackgroundJavaScript(3000);
 		//
 		// int i = 1;
-		refresh_live = odd_page.createElement("button");
-		refresh_live.setAttribute("onclick", "od_OnRefreshManually(0)");
-
-		refresh_nonlive = odd_page.createElement("button");
-		refresh_nonlive.setAttribute("onclick", "od_OnRefreshManually(1);");
-
-		odd_page.appendChild(refresh_live);
-		odd_page.appendChild(refresh_nonlive);
-
-		stop_button = odd_page.createElement("button");
-		stop_button.setAttribute("onclick", "window.stop()");
-		odd_page.appendChild(stop_button);
+		
 
 		this.isLoggin = true;
 		logger.info("loggin as " + this.username);
 
-		getUserInfo();
+		// getUserInfo();
 
 		// while (true) {
 		// this.doPolling();
@@ -300,19 +297,21 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		UserInfo info = null;
 		HtmlPage credit_page = (HtmlPage) this.webClient.getWebWindowByName(
 				"BCIFrame").getEnclosedPage();
-		float credit = Float.parseFloat(credit_page.getElementById("bc").asText());
+		float credit = Float.parseFloat(credit_page.getElementById("bc")
+				.asText());
 		System.out.println(credit);
 		return info;
 	}
 
-	public void doPolling() throws IOException, JMSException {
+	public void doPolling() {
 		// avoid overhead if is polling then return
 		// if not login then quit
 		// set is polling to true so while polling do not polling any more
 		this.isPolling = true;
 		HashMap<String, OddElement> map_odds = new HashMap<String, OddElement>();
 		if (this.side == OddSide.LIVE || this.side == OddSide.TODAY) {
-			refresh_live.click();
+			// refresh_live.click();
+			odd_page.executeJavaScript("od_OnRefreshManually(0)");
 
 			if (odd_page.getElementById("levents") != null
 					&& odd_page.getElementById("levents").getFirstChild() != null
@@ -331,9 +330,9 @@ public class SbobetPlayer extends Thread implements MessageListener {
 		if (this.side == OddSide.NON_LIVE || this.side == OddSide.EARLY
 				|| this.side == OddSide.TODAY) {
 			if (this.side == OddSide.NON_LIVE)
-				refresh_nonlive.click();
+				odd_page.executeJavaScript("od_OnRefreshManually(1)");
 			else if (this.side == OddSide.EARLY)
-				refresh_live.click();
+				odd_page.executeJavaScript("od_OnRefreshManually(0)");
 
 			if (odd_page.getElementById("events") != null
 					&& odd_page.getElementById("events").getFirstChild() != null
@@ -349,14 +348,18 @@ public class SbobetPlayer extends Thread implements MessageListener {
 
 		// trying to stop all java script :(
 
-		this.sendData(map_odds);
+		try {
+			this.sendData(map_odds);
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// stop_button.click();
 
 		this.isPolling = false;
 	}
 
-	@Override
-	public void run() {
+	public void poll() {
 		// TODO Auto-generated method stub
 		try {
 			if (isPolling || !isLoggin)
@@ -402,8 +405,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			} else if (message instanceof TextMessage) {
 				TextMessage mes = (TextMessage) message;
 				if (mes.getText().equals("UPDATE")) {
-					Thread t = new Thread(this);
-					t.start();
+					this.poll();
 				} else if (mes.getText().equals("OK")) {
 					try {
 						this.doBet();
@@ -412,7 +414,7 @@ public class SbobetPlayer extends Thread implements MessageListener {
 						this.logger.info(StackTraceUtil.getStackTrace(e));
 					}
 				} else {
-					this.doPolling();
+					this.poll();
 					for (OddElement e : this.current_map_odds.values()) {
 						this.placeBet(e.getHome());
 						return;
@@ -428,6 +430,30 @@ public class SbobetPlayer extends Thread implements MessageListener {
 			e.printStackTrace();
 		}
 
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		try {
+			this.startConnection();
+			this.homePage();
+		} catch (FailingHttpStatusCodeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void placeBet(HtmlElement element) {
