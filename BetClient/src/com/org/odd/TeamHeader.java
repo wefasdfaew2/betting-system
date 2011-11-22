@@ -36,4 +36,10 @@ public class TeamHeader {
 		this.nagative_handicap = nagative_handicap;
 	}
 
+	@Override
+	public String toString() {
+		return "TeamHeader [team1=" + team1 + ", team2=" + team2
+				+ ", nagative_handicap=" + nagative_handicap + "]";
+	}
+
 }
