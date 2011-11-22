@@ -33,6 +33,8 @@ import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Vector;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JOptionPane;
@@ -53,18 +55,24 @@ import org.apache.commons.lang.StringUtils;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.org.betmanager.TailerReader;
+import com.org.odd.Odd;
+import com.org.odd.OddElement;
 import com.org.odd.OddSide;
 import com.org.player.SbobetPlayer;
+import com.org.player.ThreeInOnePlayer;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.ListSelectionModel;
 
 public class MainWindow {
 
 	private JFrame frmBettingMachine;
 	private JTextField txtUsername;
-	private JTextField textField_2;
+	private JTextField txtBetServer;
 	private JTextField txtMinBet;
 	private JTextField txtMaxBet;
 	private JTextField txtConstantBet;
@@ -82,6 +90,9 @@ public class MainWindow {
 	private JButton btnSave_1;
 	private JLabel lblNewLabel_4;
 	private JTextArea txtConsole;
+	private Choice choiceSide;
+	private JTable table;
+	private DefaultTableModel table_model;
 
 	/**
 	 * Launch the application.
@@ -149,6 +160,7 @@ public class MainWindow {
 	/**
 	 * Initialize the contents of the frame.
 	 */
+	@SuppressWarnings("serial")
 	private void initialize() {
 		try {
 			UIManager
@@ -159,7 +171,7 @@ public class MainWindow {
 		frmBettingMachine = new JFrame();
 		frmBettingMachine.setTitle("Betting Machine");
 		frmBettingMachine.setResizable(false);
-		frmBettingMachine.setBounds(100, 100, 901, 638);
+		frmBettingMachine.setBounds(100, 100, 926, 720);
 		frmBettingMachine.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmBettingMachine.getContentPane()
 				.setLayout(new GridLayout(0, 1, 0, 0));
@@ -167,17 +179,19 @@ public class MainWindow {
 		final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		frmBettingMachine.getContentPane().add(tabbedPane);
 
-		JPanel panel = new JPanel();
-		tabbedPane.addTab("New account", null, panel, null);
-		panel.setLayout(null);
+		group = new ButtonGroup();
+
+		JPanel panel_2 = new JPanel();
+		tabbedPane.addTab("New account", null, panel_2, null);
+		panel_2.setLayout(null);
 
 		JDesktopPane desktopPane = new JDesktopPane();
 		desktopPane.setBackground(Color.LIGHT_GRAY);
-		desktopPane.setBounds(10, 11, 284, 138);
-		panel.add(desktopPane);
+		desktopPane.setBounds(10, 11, 284, 250);
+		panel_2.add(desktopPane);
 
 		txtUsername = new JTextField();
-		txtUsername.setBounds(75, 8, 168, 20);
+		txtUsername.setBounds(75, 8, 199, 20);
 		desktopPane.add(txtUsername);
 		txtUsername.setColumns(10);
 
@@ -195,18 +209,67 @@ public class MainWindow {
 							JOptionPane.ERROR_MESSAGE);
 				else {
 					if (choiceDomain.getSelectedItem().equals("3in")) {
+						StringBuffer bf = new StringBuffer();
+						bf.append(txtPassword.getPassword());
+						OddSide side = OddSide.LIVE;
+						if (choiceSide.getSelectedItem().equals("NON-LIVE")) {
+							side = OddSide.NON_LIVE;
+						} else if (choiceSide.getSelectedItem().equals("TODAY")) {
+							side = OddSide.TODAY;
+						}
+						try {
+							ThreeInOnePlayer player = new ThreeInOnePlayer(
+									txtUsername.getText(), bf.toString(), side);
+							player.homePage();
+							HashMap<String, OddElement> map_odds = player
+									.getCurrent_map_odds();
+							for (OddElement o : map_odds.values()) {
+								Odd odd = o.getOdd();
+								table_model.addRow(new Object[] {
+										odd.getHome(), odd.getAway(),
+										odd.getHandicap(), odd.getType(),
+										odd.getOdd_home(), odd.getOdd_away() });
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 
 					}
 					if (choiceDomain.getSelectedItem().equals("Sbo")) {
 						StringBuffer bf = new StringBuffer();
 						bf.append(txtPassword.getPassword());
-
+						OddSide side = OddSide.LIVE;
+						if (choiceSide.getSelectedItem().equals("NON-LIVE")) {
+							side = OddSide.NON_LIVE;
+						} else if (choiceSide.getSelectedItem().equals("TODAY")) {
+							side = OddSide.TODAY;
+						}
 						try {
 							SbobetPlayer player = new SbobetPlayer(txtUsername
-									.getText(), bf.toString(), OddSide.LIVE,
-									false);
-							(new Thread(player)).start();
+									.getText(), bf.toString(), side, false);
+							player.homePage();
+							HashMap<String, OddElement> map_odds = player
+									.getCurrent_map_odds();
+							for (OddElement o : map_odds.values()) {
+								Odd odd = o.getOdd();
+								table_model.addRow(new Object[] {
+										odd.getHome(), odd.getAway(),
+										odd.getHandicap(), odd.getType(),
+										odd.getOdd_home(), odd.getOdd_away() });
+							}
 						} catch (JMSException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (FailingHttpStatusCodeException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (MalformedURLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
@@ -216,7 +279,7 @@ public class MainWindow {
 			}
 
 		});
-		btnNewButton.setBounds(9, 105, 83, 23);
+		btnNewButton.setBounds(9, 216, 83, 23);
 		desktopPane.add(btnNewButton);
 
 		lblPassword = new JLabel("Password");
@@ -248,7 +311,7 @@ public class MainWindow {
 				txtTimeout.setText("3000");
 			}
 		});
-		btnSave.setBounds(108, 105, 73, 23);
+		btnSave.setBounds(108, 216, 73, 23);
 		desktopPane.add(btnSave);
 
 		btnSave_1 = new JButton("Save");
@@ -294,11 +357,11 @@ public class MainWindow {
 				.setIcon(new ImageIcon(
 						MainWindow.class
 								.getResource("/javax/swing/plaf/metal/icons/ocean/floppy.gif")));
-		btnSave_1.setBounds(191, 105, 83, 23);
+		btnSave_1.setBounds(191, 216, 83, 23);
 		desktopPane.add(btnSave_1);
 
 		txtPassword = new JPasswordField();
-		txtPassword.setBounds(75, 39, 168, 20);
+		txtPassword.setBounds(75, 39, 199, 20);
 		desktopPane.add(txtPassword);
 
 		lblNewLabel_4 = new JLabel("Timeout(s)");
@@ -311,11 +374,49 @@ public class MainWindow {
 		desktopPane.add(txtTimeout);
 		txtTimeout.setColumns(10);
 
+		JLabel lblSide = new JLabel("Side");
+		lblSide.setBounds(9, 92, 46, 14);
+		desktopPane.add(lblSide);
+
+		choiceSide = new Choice();
+		choiceSide.setBounds(75, 92, 86, 20);
+		choiceSide.add("LIVE");
+		choiceSide.add("NON-LIVE");
+		choiceSide.add("TODAY");
+		desktopPane.add(choiceSide);
+
+		JLabel lblBetServer = new JLabel("Bet Server");
+		lblBetServer.setBounds(9, 123, 52, 14);
+		desktopPane.add(lblBetServer);
+
+		JScrollPane scrollPane_2 = new JScrollPane();
+		scrollPane_2.setBounds(75, 121, 199, 23);
+		desktopPane.add(scrollPane_2);
+
+		txtBetServer = new JTextField();
+		scrollPane_2.setViewportView(txtBetServer);
+		txtBetServer
+				.setText("tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0");
+		txtBetServer.setColumns(10);
+
+		JCheckBox chckbxAutoConnect = new JCheckBox("Auto connect");
+		chckbxAutoConnect.setSelected(true);
+		chckbxAutoConnect.setBounds(75, 155, 97, 23);
+		desktopPane.add(chckbxAutoConnect);
+
+		JButton btnConnect = new JButton("Connect");
+		btnConnect.setBounds(184, 155, 97, 23);
+		desktopPane.add(btnConnect);
+		btnConnect
+				.setIcon(new ImageIcon(
+						MainWindow.class
+								.getResource("/javax/swing/plaf/metal/icons/ocean/expanded.gif")));
+
 		JPanel panel_1 = new JPanel();
 		panel_1.setBackground(Color.LIGHT_GRAY);
 		panel_1.setForeground(Color.LIGHT_GRAY);
 		panel_1.setBounds(304, 11, 146, 250);
-		panel.add(panel_1);
+		panel_2.add(panel_1);
 		panel_1.setLayout(null);
 
 		JLabel lblAccountInfo = new JLabel("Account Info");
@@ -371,45 +472,6 @@ public class MainWindow {
 		label_3.setBounds(90, 211, 46, 14);
 		panel_1.add(label_3);
 
-		JPanel panel_2 = new JPanel();
-		panel_2.setBackground(Color.LIGHT_GRAY);
-		panel_2.setBounds(10, 160, 284, 101);
-		panel.add(panel_2);
-		panel_2.setLayout(null);
-
-		textField_2 = new JTextField();
-		textField_2.setBounds(79, 11, 184, 20);
-		panel_2.add(textField_2);
-		textField_2.setColumns(10);
-
-		JLabel lblBetServer = new JLabel("Bet Server");
-		lblBetServer.setBounds(10, 14, 52, 14);
-		panel_2.add(lblBetServer);
-
-		JButton btnConnect = new JButton("Connect");
-		btnConnect
-				.setIcon(new ImageIcon(
-						MainWindow.class
-								.getResource("/javax/swing/plaf/metal/icons/ocean/expanded.gif")));
-		btnConnect.setBounds(10, 67, 114, 23);
-		panel_2.add(btnConnect);
-
-		JLabel lblStatus = new JLabel("Status");
-		lblStatus.setBounds(10, 42, 46, 14);
-		panel_2.add(lblStatus);
-
-		JLabel lblNotConnected = new JLabel("Not connected");
-		lblNotConnected.setBounds(79, 42, 97, 14);
-		panel_2.add(lblNotConnected);
-
-		JButton btnDisconnect = new JButton("Disconnect");
-		btnDisconnect
-				.setIcon(new ImageIcon(
-						MainWindow.class
-								.getResource("/com/sun/java/swing/plaf/motif/icons/Error.gif")));
-		btnDisconnect.setBounds(152, 67, 122, 23);
-		panel_2.add(btnDisconnect);
-
 		JButton btnLogout = new JButton("Logout");
 		btnLogout.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -418,33 +480,32 @@ public class MainWindow {
 		});
 		btnLogout.setIcon(new ImageIcon(MainWindow.class
 				.getResource("/javax/swing/plaf/metal/icons/ocean/info.png")));
-		btnLogout.setBounds(613, 516, 107, 34);
-		panel.add(btnLogout);
+		btnLogout.setBounds(773, 598, 107, 34);
+		panel_2.add(btnLogout);
 
 		JPanel panel_3 = new JPanel();
 		panel_3.setBackground(Color.LIGHT_GRAY);
-		panel_3.setBounds(460, 11, 420, 250);
-		panel.add(panel_3);
+		panel_3.setBounds(460, 11, 440, 160);
+		panel_2.add(panel_3);
 		panel_3.setLayout(null);
 
 		JLabel lblBetList = new JLabel("Bet List");
 		lblBetList.setBounds(47, 5, 62, 20);
 		lblBetList.setFont(new Font("Tahoma", Font.BOLD, 16));
 		panel_3.add(lblBetList);
-		
+
 		JScrollPane scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBounds(10, 31, 400, 196);
+		scrollPane_1.setBounds(10, 31, 420, 115);
 		panel_3.add(scrollPane_1);
 
 		JTextArea txtrHdp = new JTextArea();
 		scrollPane_1.setViewportView(txtrHdp);
 		txtrHdp.setEditable(false);
-		txtrHdp.setText("HDP190601105   11/17 15:01:28\r\nHandicapSoccer\r\nThailand U23 -vs- Singapore U23\r\nSEA GAMES INDONESIA 2011 - MEN SOCCER\r\nBet:3.00Thailand U23\r\nrunning-0.5 @0.720");
 
 		JPanel panel_8 = new JPanel();
 		panel_8.setBackground(Color.LIGHT_GRAY);
-		panel_8.setBounds(10, 272, 440, 68);
-		panel.add(panel_8);
+		panel_8.setBounds(460, 182, 440, 79);
+		panel_2.add(panel_8);
 		panel_8.setLayout(null);
 
 		txtMinBet = new JTextField();
@@ -455,7 +516,7 @@ public class MainWindow {
 
 		txtMaxBet = new JTextField();
 		txtMaxBet.setText("50");
-		txtMaxBet.setBounds(332, 10, 86, 20);
+		txtMaxBet.setBounds(332, 10, 98, 20);
 		panel_8.add(txtMaxBet);
 		txtMaxBet.setColumns(10);
 
@@ -495,38 +556,62 @@ public class MainWindow {
 		});
 		rdbtnConstantBet.setBounds(16, 37, 109, 23);
 		panel_8.add(rdbtnConstantBet);
-
-		group = new ButtonGroup();
 		group.add(rdbtnRandomBet);
 		group.add(rdbtnConstantBet);
 
 		txtConstantBet = new JTextField();
 		txtConstantBet.setEnabled(false);
-		txtConstantBet.setBounds(192, 38, 226, 20);
+		txtConstantBet.setBounds(192, 38, 238, 20);
 		panel_8.add(txtConstantBet);
 		txtConstantBet.setColumns(10);
 
 		JLabel lblValue = new JLabel("Value");
 		lblValue.setBounds(160, 41, 46, 14);
 		panel_8.add(lblValue);
-		
+
 		JPanel panel_9 = new JPanel();
 		panel_9.setBackground(Color.LIGHT_GRAY);
-		panel_9.setBounds(10, 355, 870, 152);
-		panel.add(panel_9);
+		panel_9.setBounds(10, 435, 890, 152);
+		panel_2.add(panel_9);
 		panel_9.setLayout(null);
-		
+
 		JLabel lblConsole = new JLabel("Console");
 		lblConsole.setFont(new Font("Tahoma", Font.BOLD, 16));
 		lblConsole.setBounds(10, 11, 82, 14);
 		panel_9.add(lblConsole);
-		
+
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 36, 850, 105);
+		scrollPane.setBounds(10, 36, 870, 105);
 		panel_9.add(scrollPane);
-		
+
 		txtConsole = new JTextArea();
 		scrollPane.setViewportView(txtConsole);
+
+		JPanel panel_10 = new JPanel();
+		panel_10.setBackground(Color.LIGHT_GRAY);
+		panel_10.setBounds(10, 271, 890, 153);
+		panel_2.add(panel_10);
+		panel_10.setLayout(null);
+
+		JScrollPane scrollPane_3 = new JScrollPane();
+		scrollPane_3.setBounds(10, 11, 870, 131);
+		panel_10.add(scrollPane_3);
+
+		table = new JTable();
+		table.setRowSelectionAllowed(false);
+		scrollPane_3.setViewportView(table);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setFillsViewportHeight(true);
+		table_model = new DefaultTableModel(new Object[][] {}, new String[] {
+				"home", "away", "handicap", "type", "odd home", "odd away" });
+		table.setModel(table_model);
+		table.getColumn("odd home").setCellRenderer(new ButtonRenderer());
+		table.getColumn("odd away").setCellRenderer(new ButtonRenderer());
+		table.getColumn("odd home").setCellEditor(
+				new ButtonEditor(new JCheckBox()));
+		table.getColumn("odd away").setCellEditor(
+				new ButtonEditor(new JCheckBox()));
+		
 
 		JPanel panel_4 = new JPanel();
 		tabbedPane.addTab("Account Manager", null, panel_4, null);
