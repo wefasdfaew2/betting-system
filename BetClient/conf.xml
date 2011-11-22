@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><betting-machine>
+<player>
+<username>a</username>
+<password>sdf</password>
+<domain>Sbo</domain>
+<timeout>3000</timeout>
+<betvalue>10</betvalue>
+<betvalue>50</betvalue>
+</player>
+</betting-machine>
