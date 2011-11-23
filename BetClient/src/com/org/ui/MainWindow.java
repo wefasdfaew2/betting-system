@@ -58,7 +58,9 @@ import com.org.betmanager.TailerReader;
 import com.org.odd.Odd;
 import com.org.odd.OddElement;
 import com.org.odd.OddSide;
+import com.org.player.IPlayer;
 import com.org.player.SbobetPlayer;
+import com.org.player.StackTraceUtil;
 import com.org.player.ThreeInOnePlayer;
 
 import javax.swing.event.ChangeListener;
@@ -93,6 +95,9 @@ public class MainWindow {
 	private Choice choiceSide;
 	private JTable table;
 	private DefaultTableModel table_model;
+	private JButton btnConnect;
+	private IPlayer player;
+	private JCheckBox chckbxAutoConnect;
 
 	/**
 	 * Launch the application.
@@ -145,7 +150,7 @@ public class MainWindow {
 
 	class LogFileTailer extends TailerListenerAdapter {
 		public void handle(String line) {
-			txtConsole.append(line);
+			txtConsole.append("\n" + line);
 		}
 	}
 
@@ -218,7 +223,7 @@ public class MainWindow {
 							side = OddSide.TODAY;
 						}
 						try {
-							ThreeInOnePlayer player = new ThreeInOnePlayer(
+							player = new ThreeInOnePlayer(
 									txtUsername.getText(), bf.toString(), side);
 							player.homePage();
 							HashMap<String, OddElement> map_odds = player
@@ -230,6 +235,11 @@ public class MainWindow {
 										odd.getHandicap(), odd.getType(),
 										odd.getOdd_home(), odd.getOdd_away() });
 							}
+							if (chckbxAutoConnect.isSelected()) {
+								player.startConnection();
+								btnConnect.setText("Disconect");
+							}
+							btnConnect.setEnabled(true);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -245,8 +255,8 @@ public class MainWindow {
 							side = OddSide.TODAY;
 						}
 						try {
-							SbobetPlayer player = new SbobetPlayer(txtUsername
-									.getText(), bf.toString(), side, false);
+							player = new SbobetPlayer(txtUsername.getText(), bf
+									.toString(), side, false);
 							player.homePage();
 							HashMap<String, OddElement> map_odds = player
 									.getCurrent_map_odds();
@@ -257,23 +267,15 @@ public class MainWindow {
 										odd.getHandicap(), odd.getType(),
 										odd.getOdd_home(), odd.getOdd_away() });
 							}
-						} catch (JMSException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (FailingHttpStatusCodeException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (MalformedURLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (InterruptedException e) {
+							if (chckbxAutoConnect.isSelected()) {
+								player.startConnection();
+								btnConnect.setText("Disconect");
+							}
+							btnConnect.setEnabled(true);
+						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-
 					}
 				}
 			}
@@ -399,12 +401,24 @@ public class MainWindow {
 				.setText("tcp://localhost:61616?jms.useAsyncSend=true&wireFormat.maxInactivityDuration=0");
 		txtBetServer.setColumns(10);
 
-		JCheckBox chckbxAutoConnect = new JCheckBox("Auto connect");
+		chckbxAutoConnect = new JCheckBox("Auto connect");
 		chckbxAutoConnect.setSelected(true);
 		chckbxAutoConnect.setBounds(75, 155, 97, 23);
 		desktopPane.add(chckbxAutoConnect);
 
-		JButton btnConnect = new JButton("Connect");
+		btnConnect = new JButton("Connect");
+		btnConnect.setEnabled(false);
+		btnConnect.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					player.startConnection();
+					btnConnect.setText("Disconect");
+				} catch (JMSException e1) {
+					// TODO Auto-generated catch block
+					player.getLogger().error(StackTraceUtil.getStackTrace(e1));
+				}
+			}
+		});
 		btnConnect.setBounds(184, 155, 97, 23);
 		desktopPane.add(btnConnect);
 		btnConnect
@@ -611,7 +625,6 @@ public class MainWindow {
 				new ButtonEditor(new JCheckBox()));
 		table.getColumn("odd away").setCellEditor(
 				new ButtonEditor(new JCheckBox()));
-		
 
 		JPanel panel_4 = new JPanel();
 		tabbedPane.addTab("Account Manager", null, panel_4, null);
