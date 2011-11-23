@@ -57,7 +57,8 @@ import com.org.odd.OddUtilities;
 import com.org.odd.TeamHeader;
 import com.org.odd.TeamType;
 
-public class ThreeInOnePlayer extends Thread implements MessageListener,IPlayer {
+public class ThreeInOnePlayer extends Thread implements MessageListener,
+		IPlayer {
 	String url = JMSConfiguration.getHostURL();
 	private final Logger logger;
 	private String username;
@@ -79,7 +80,7 @@ public class ThreeInOnePlayer extends Thread implements MessageListener,IPlayer 
 	private boolean isLoggin = false;
 	Session session;
 	Connection connection;
-	MessagePublisher sbo = new MessagePublisher("Maj3259005");
+	MessagePublisher sbo;
 	HashMap<String, Odd> id_map;
 	HashMap<String, TeamHeader> header_map;
 
@@ -145,8 +146,9 @@ public class ThreeInOnePlayer extends Thread implements MessageListener,IPlayer 
 		this.isLoggin = false;
 	}
 
-	private synchronized void startConnection() throws JMSException {
+	public synchronized void startConnection() throws JMSException {
 		this.p = new TopicPublisher();
+		sbo = new MessagePublisher("Maj3259005");
 		ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(url);
 		connection = factory.createConnection();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -326,20 +328,25 @@ public class ThreeInOnePlayer extends Thread implements MessageListener,IPlayer 
 		// "RefreshRunning();secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;");
 		// form.appendChild(refresh_live);
 		// secondsLiveLeft = 10000000000;secondsTodayLeft = 10000000000;C;
-		HtmlTable table = (HtmlTable) odd_page.getElementById("tblData5");
-		current_map_odds = this.util
-				.getOddsFromThreeInOne(table);
+		HtmlTable table = null;
+		if (this.side == OddSide.LIVE)
+			table = (HtmlTable) odd_page.getElementById("tblData5");
+		else if (this.side == OddSide.NON_LIVE)
+			table = (HtmlTable) odd_page.getElementById("tblData6");
+		
+		
+		current_map_odds = this.util.getOddsFromThreeInOne(table);
 		id_map = this.convertTable(current_map_odds);
 		header_map = this.util.getTeamHeaderFromThreeInOne(table);
 
 		// getUserInfo();
-//		while (true) {
-//			long a = System.currentTimeMillis();
-//			this.doPolling();
-//			long b = System.currentTimeMillis();
-//			logger.info(b - a);
-//			Thread.sleep(1000);
-//		}
+		// while (true) {
+		// long a = System.currentTimeMillis();
+		// this.doPolling();
+		// long b = System.currentTimeMillis();
+		// logger.info(b - a);
+		// Thread.sleep(1000);
+		// }
 		// webClient.closeAllWindows();
 	}
 
